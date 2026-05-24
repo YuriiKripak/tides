@@ -4,13 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Tide Walk Score · Myrtle Beach</title>
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="manifest" href="site.webmanifest">
-<meta name="theme-color" content="#05091a">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Tide Walk">
-<link rel="apple-touch-icon" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
@@ -94,8 +87,7 @@ body::before{
 .la{animation:lf .22s ease}
 
 /* ── WEATHER BG ── */
-#wxcanvas{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
-#wxbg{display:none}
+#wxbg{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
 
 /* ── DIAL ── */
 .dial-wrap{display:flex;justify-content:center;padding:2px 0}
@@ -139,7 +131,6 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
   display:flex;flex-direction:column;align-items:center;gap:1px
 }
 .st-ey{
-  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif;
   font-size:9.8px;font-weight:600;
   letter-spacing:.16em;text-transform:uppercase;color:#66849d
 }
@@ -205,7 +196,6 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
 
 /* Status dot indicator */
 .cl{
-  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif;
   font-size:10.8px;font-weight:650;
   letter-spacing:.055em;text-transform:uppercase;color:#6f8da5;
   margin-bottom:5px;display:flex;align-items:center;gap:5px
@@ -233,8 +223,8 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
 </style>
 </head>
 <body>
-<canvas id="wxcanvas"></canvas>
-<div id="wxbg" class="storm" aria-hidden="true"></div>
+<canvas id="wxcanvas" style="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0"></canvas>
+<div id="wxbg" class="storm"></div>
 <div class="app">
 
   <!-- HEADER -->
@@ -333,25 +323,25 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
       -->
 
       <!-- Static water body -->
-      <rect x="41" y="90" width="278" height="230"
+      <rect id="water-body" x="41" y="90" width="278" height="230"
             fill="url(#gWater)" clip-path="url(#faceClip)"/>
 
       <!-- Wave layer 1 — slow -->
       <g clip-path="url(#faceClip)">
-        <path class="wave1"
+        <path id="wave-1" class="wave1"
           d="M -180,90 Q -135,79 -90,90 Q -45,101 0,90 Q 45,79 90,90 Q 135,101 180,90 Q 225,79 270,90 Q 315,101 360,90 Q 405,79 450,90 Q 495,101 540,90 L 540,320 L -180,320 Z"
           fill="rgba(15,184,168,.13)"/>
       </g>
 
       <!-- Wave layer 2 — fast, offset phase -->
       <g clip-path="url(#faceClip)">
-        <path class="wave2"
+        <path id="wave-2" class="wave2"
           d="M -270,92 Q -225,82 -180,92 Q -135,102 -90,92 Q -45,82 0,92 Q 45,102 90,92 Q 135,82 180,92 Q 225,102 270,92 Q 315,82 360,92 Q 405,102 450,92 Q 495,82 540,92 L 540,320 L -270,320 Z"
           fill="rgba(15,184,168,.09)"/>
       </g>
 
       <!-- Subtle surface highlight line -->
-      <line x1="41" y1="90" x2="319" y2="90"
+      <line id="water-line" x1="41" y1="90" x2="319" y2="90"
             stroke="rgba(15,220,200,.25)" stroke-width=".75"
             clip-path="url(#faceClip)"/>
 
@@ -365,7 +355,7 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
          text-anchor="middle" dominant-baseline="central"/>
 
       <!-- Needle -->
-      <g class="ng">
+      <g id="needle-group" class="ng">
         <!-- drop shadow -->
         <line x1="181" y1="193" x2="181" y2="68"
               stroke="rgba(0,0,0,.45)" stroke-width="4" stroke-linecap="round"/>
@@ -389,12 +379,12 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
   <!-- STATUS -->
   <div class="status">
     <span class="st-ey" data-i18n="st-ey">Current condition</span>
-    <span class="st-main" data-i18n="st-main">Falling Tide</span>
+    <span id="tide-status" class="st-main" data-i18n="st-main">Falling Tide</span>
     <span class="st-next">
-      <span data-i18n="next-low">Next low</span>
-      <span class="t">09:12 AM</span> ·
+      <span id="next-tide-label" data-i18n="next-low">Next low</span>
+      <span id="next-tide-time" class="t" data-i18n="next-tide-time">09:12 AM</span> ·
       <span data-i18n="in-word">in</span>
-      <span class="d">5 h 12 m</span>
+      <span id="next-tide-duration" class="d">5 h 12 m</span>
     </span>
   </div>
 
@@ -411,7 +401,7 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
       <div class="walk-block">
         <div>
           <div class="cl info" data-i18n="walk-window">Walk Time</div>
-          <div class="walk-time" data-i18n="walk-time-value">08:12–10:42 AM</div>
+          <div id="walk-time-value" class="walk-time" data-i18n="walk-time-value">08:12–10:42 AM</div>
         </div>
         <div class="walk-note">
           <span data-i18n="best-window">Best</span>
@@ -450,7 +440,14 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
       'st-ey':        'Current condition',
       'st-main':      'Falling Tide',
       'next-low':     'Next low',
+      'next-high':    'Next high',
+      'next-tide-time':'09:12 AM',
       'in-word':      'in',
+      'rising-tide':  'Rising Tide',
+      'falling-tide': 'Falling Tide',
+      'now-until':    'Now until',
+      'window-passed':'Window passed',
+      'unavailable':  'n/a',
       'walk-window':  'Walk Time',
       'best-window':  'Best',
       'walk-time-value':'08:12–10:42 AM',
@@ -481,7 +478,14 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
       'st-ey':        'Текущее состояние',
       'st-main':      'Спад прилива',
       'next-low':     'Следующий отлив',
+      'next-high':    'Следующий прилив',
+      'next-tide-time':'09:12',
       'in-word':      'через',
+      'rising-tide':  'Рост прилива',
+      'falling-tide': 'Спад прилива',
+      'now-until':    'Сейчас до',
+      'window-passed':'Окно прошло',
+      'unavailable':  'н/д',
       'walk-window':  'Окно',
       'best-window':  'Лучшее',
       'walk-time-value':'08:12–10:42',
@@ -512,7 +516,14 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
       'st-ey':        'Поточний стан',
       'st-main':      'Спад припливу',
       'next-low':     'Наступний відлив',
+      'next-high':    'Наступний приплив',
+      'next-tide-time':'09:12',
       'in-word':      'через',
+      'rising-tide':  'Зростання припливу',
+      'falling-tide': 'Спад припливу',
+      'now-until':    'Зараз до',
+      'window-passed':'Вікно минуло',
+      'unavailable':  'н/д',
       'walk-window':  'Вікно',
       'best-window':  'Найкраще',
       'walk-time-value':'08:12–10:42',
@@ -543,7 +554,14 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
       'st-ey':        'Estado actual',
       'st-main':      'Marea bajando',
       'next-low':     'Próxima bajamar',
+      'next-high':    'Próxima pleamar',
+      'next-tide-time':'09:12 AM',
       'in-word':      'en',
+      'rising-tide':  'Marea subiendo',
+      'falling-tide': 'Marea bajando',
+      'now-until':    'Ahora hasta',
+      'window-passed':'Ventana pasada',
+      'unavailable':  'n/d',
       'walk-window':  'Horario',
       'best-window':  'Mejor',
       'walk-time-value':'08:12–10:42 AM',
@@ -571,20 +589,197 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
     },
   };
 
-  const timeLocales = { en:'en-US', ru:'ru-RU', ua:'uk-UA', es:'es-ES' };
+  const STATION_ID = '8661070';
+  const SPRINGMAID = { lat: 33.655, lon: -78.918 };
+  const NOAA_API = 'https://api.tidesandcurrents.noaa.gov/api/prod/datagetter';
+  const NWS_POINTS_API = `https://api.weather.gov/points/${SPRINGMAID.lat},${SPRINGMAID.lon}`;
+  const OPEN_METEO_API = 'https://api.open-meteo.com/v1/forecast';
+  const OPEN_METEO_MARINE_API = 'https://marine-api.open-meteo.com/v1/marine';
+  const timeLocales = { en:'en-US', ru:'ru-RU', ua:'uk-UA', es:'en-US' };
+  const metricLangs = new Set(['ru','ua','es']);
+  let liveState = {
+    tide: null,
+    waterTempC: null,
+    windMps: null,
+    windDirectionDeg: null,
+    windGustMps: null,
+    airTempC: null,
+    uv: null,
+    waveHeightM: null,
+    weatherState: document.body.dataset.weather || 'storm',
+    updatedAt: null,
+  };
+
+  function isHour12(lang) {
+    return lang === 'en' || lang === 'es';
+  }
 
   function formatLocalTime(lang) {
+    return formatClock(new Date(), lang);
+  }
+
+  function formatClock(date, lang = currentLang) {
     return new Intl.DateTimeFormat(timeLocales[lang] || timeLocales.en, {
       timeZone: 'America/New_York',
       hour: '2-digit',
       minute: '2-digit',
-    }).format(new Date());
+      hour12: isHour12(lang),
+    }).format(date);
+  }
+
+  function formatClockRange(start, end, lang = currentLang) {
+    const left = formatClock(start, lang);
+    const right = formatClock(end, lang);
+    if (isHour12(lang)) {
+      const leftPeriod = left.match(/\s?(AM|PM)$/i)?.[1];
+      const rightPeriod = right.match(/\s?(AM|PM)$/i)?.[1];
+      if (leftPeriod && rightPeriod && leftPeriod.toUpperCase() === rightPeriod.toUpperCase()) {
+        return `${left.replace(/\s?(AM|PM)$/i, '')}–${right}`;
+      }
+    }
+    return `${left}–${right}`;
   }
 
   function updateLocalTime(lang = currentLang) {
     const d = T[lang] || T.en;
     const el = document.querySelector('[data-i18n="loc-sub"]');
     if (el) el.textContent = `${d['loc-label']} · ${formatLocalTime(lang)}`;
+  }
+
+  function formatDuration(ms, lang = currentLang) {
+    const minutesTotal = Math.max(0, Math.round(ms / 60000));
+    const hours = Math.floor(minutesTotal / 60);
+    const minutes = minutesTotal % 60;
+    const h = lang === 'ua' ? 'год' : lang === 'ru' ? 'ч' : 'h';
+    const m = lang === 'ua' ? 'хв' : lang === 'ru' ? 'мин' : 'm';
+    return hours > 0 ? `${hours} ${h} ${minutes} ${m}` : `${minutes} ${m}`;
+  }
+
+  function noaaUrl(params) {
+    const url = new URL(NOAA_API);
+    Object.entries(params).forEach(([key, value]) => url.searchParams.set(key, value));
+    return url;
+  }
+
+  function openMeteoUrl(base, params) {
+    const url = new URL(base);
+    Object.entries(params).forEach(([key, value]) => url.searchParams.set(key, value));
+    return url;
+  }
+
+  async function fetchJson(url) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 9000);
+    try {
+      const response = await fetch(url, { cache: 'no-store', signal: controller.signal });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return await response.json();
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  function parseNoaaLocalTime(value) {
+    const [datePart, timePart] = value.split(' ');
+    const [year, month, day] = datePart.split('-').map(Number);
+    const [hour, minute] = timePart.split(':').map(Number);
+    return new Date(year, month - 1, day, hour, minute);
+  }
+
+  function noaaDate(date) {
+    return new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/New_York',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(date).replaceAll('-', '');
+  }
+
+  function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+  }
+
+  function directionFromDegrees(deg, lang = currentLang) {
+    if (deg == null || Number.isNaN(deg)) return '';
+    const en = ['N','NE','E','SE','S','SW','W','NW'];
+    const ru = ['С','СВ','В','ЮВ','Ю','ЮЗ','З','СЗ'];
+    const ua = ['Пн','ПнСх','Сх','ПдСх','Пд','ПдЗх','Зх','ПнЗх'];
+    const labels = lang === 'ru' ? ru : lang === 'ua' ? ua : en;
+    return labels[Math.round(((deg % 360) / 45)) % 8];
+  }
+
+  function weatherCodeToState(code, fallback = '') {
+    const text = String(fallback).toLowerCase();
+    if ([95,96,99].includes(code) || /thunder|storm|гроза|tormenta/.test(text)) return 'storm';
+    if ([51,53,55,56,57,61,63,65,66,67,80,81,82].includes(code) || /rain|shower|drizzle|дожд|дощ|lluv/.test(text)) return 'rain';
+    if ([45,48,71,73,75,77,85,86].includes(code) || /snow|fog|туман/.test(text)) return 'cloudy';
+    if ([1,2].includes(code) || /partly|mostly sunny|перем/.test(text)) return 'partly-cloudy';
+    if (code === 3 || /cloud|облач|хмар|nublado/.test(text)) return 'cloudy';
+    return 'clear-night';
+  }
+
+  function walkWindowForLow(lowTime) {
+    if (!lowTime) return null;
+    return {
+      start: new Date(lowTime.getTime() - 90 * 60000),
+      end: new Date(lowTime.getTime() + 90 * 60000),
+    };
+  }
+
+  function nextWalkLow(hilo, currentTime) {
+    return hilo
+      .filter(item => item.type === 'L')
+      .find(item => currentTime <= walkWindowForLow(item.time).end)
+      || hilo.find(item => item.type === 'L' && item.time > currentTime)
+      || null;
+  }
+
+  function tideWindowScore(now, lowTime) {
+    const window = walkWindowForLow(lowTime);
+    if (!window) return 55;
+    if (now >= window.start && now <= window.end) {
+      const fromLow = Math.abs(now - lowTime) / 60000;
+      return clamp(100 - fromLow * 0.12, 88, 100);
+    }
+    const distanceMinutes = now < window.start
+      ? (window.start - now) / 60000
+      : (now - window.end) / 60000;
+    return clamp(85 - distanceMinutes * 0.32, 20, 85);
+  }
+
+  function waterTempScore(c) {
+    if (c == null) return 70;
+    if (c >= 23 && c <= 30) return 95;
+    if (c >= 20 && c < 23) return 82;
+    if (c >= 17 && c < 20) return 65;
+    if (c > 30 && c <= 32) return 72;
+    return 45;
+  }
+
+  function windScore(mps) {
+    if (mps == null) return 70;
+    const mph = mps * 2.23694;
+    if (mph <= 8) return 95;
+    if (mph <= 15) return 76;
+    if (mph <= 22) return 52;
+    return 25;
+  }
+
+  function surfScore(m) {
+    if (m == null) return 70;
+    const ft = m * 3.28084;
+    if (ft <= 2) return 92;
+    if (ft <= 3) return 74;
+    if (ft <= 5) return 48;
+    return 20;
+  }
+
+  function uvScore(uv) {
+    if (uv == null) return 75;
+    if (uv < 3) return 96;
+    if (uv < 6) return 72;
+    if (uv < 8) return 50;
+    return 25;
   }
 
   function scoreBand(score) {
@@ -595,14 +790,16 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
     return { key:'score-avoid', cls:'danger', color:'#ef4444' };
   }
 
-  function calculateTideWalkScore(weatherState = document.body.dataset.weather || 'storm') {
+  function calculateTideWalkScore(weatherState = liveState.weatherState || document.body.dataset.weather || 'storm') {
+    const now = liveState.tide?.currentTime || new Date();
+    const walkLow = liveState.tide?.walkLow?.time || null;
     const factors = {
-      tideWindow: 66,
-      uv: 100,
-      waterTemp: 92,
-      wind: 68,
-      surf: 62,
-      tideLevel: 55,
+      tideWindow: tideWindowScore(now, walkLow),
+      uv: uvScore(liveState.uv),
+      waterTemp: waterTempScore(liveState.waterTempC),
+      wind: windScore(liveState.windMps),
+      surf: surfScore(liveState.waveHeightM),
+      tideLevel: liveState.tide?.fillRatio != null ? clamp(100 - liveState.tide.fillRatio * 40, 45, 90) : 65,
       weather: ({ sunny:88, 'partly-cloudy':90, cloudy:78, rain:55, storm:20, 'clear-night':84 })[weatherState] ?? 70,
     };
     let score = Math.round(
@@ -631,6 +828,266 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
     }
   };
 
+  function setText(selector, value) {
+    const el = typeof selector === 'string' ? document.querySelector(selector) : selector;
+    if (el) el.textContent = value;
+  }
+
+  function setTone(el, score) {
+    const card = typeof el === 'string' ? document.querySelector(el) : el;
+    if (!card) return;
+    card.classList.remove('safe', 'caution', 'danger');
+    card.classList.add(score >= 70 ? 'safe' : score >= 45 ? 'caution' : 'danger');
+  }
+
+  function formatTemperature(c, lang = currentLang) {
+    if (c == null) return T[lang]['unavailable'];
+    if (metricLangs.has(lang)) return `${Math.round(c)}°C`;
+    return `${Math.round(c * 9 / 5 + 32)}°F`;
+  }
+
+  function formatWindSpeed(mps, gustMps, lang = currentLang) {
+    if (mps == null) return T[lang]['unavailable'];
+    const high = gustMps != null && gustMps > mps ? gustMps : null;
+    const factor = metricLangs.has(lang) ? 3.6 : 2.23694;
+    const low = Math.round(mps * factor);
+    const upper = high ? Math.round(high * factor) : low;
+    return upper > low ? `${low}–${upper}` : String(low);
+  }
+
+  function formatWaveHeight(m, lang = currentLang) {
+    if (m == null) return T[lang]['unavailable'];
+    if (metricLangs.has(lang)) {
+      const low = Math.max(0, m - 0.15);
+      const high = m + 0.15;
+      return `${low.toFixed(1)}–${high.toFixed(1)}`;
+    }
+    const ft = m * 3.28084;
+    return `${Math.max(0, Math.round(ft - 0.5))}–${Math.round(ft + 0.5)}`;
+  }
+
+  function renderLiveData() {
+    const d = T[currentLang] || T.en;
+    const tide = liveState.tide;
+    if (tide) {
+      const nextKey = tide.next.type === 'H' ? 'next-high' : 'next-low';
+      setText('#tide-status', d[tide.falling ? 'falling-tide' : 'rising-tide']);
+      setText('#next-tide-label', d[nextKey]);
+      setText('#next-tide-time', formatClock(tide.next.time, currentLang));
+      setText('#next-tide-duration', formatDuration(tide.next.time - tide.currentTime, currentLang));
+      const walk = walkWindowForLow(tide.walkLow?.time);
+      if (walk) {
+        const value = tide.currentTime >= walk.start && tide.currentTime <= walk.end
+          ? `${d['now-until']} ${formatClock(walk.end, currentLang)}`
+          : tide.currentTime > walk.end
+            ? d['window-passed']
+            : formatClockRange(walk.start, walk.end, currentLang);
+        setText('#walk-time-value', value);
+      }
+      const angle = tide.falling ? tide.progress * 180 : 180 + tide.progress * 180;
+      const waterY = 40 + 280 * (1 - tide.fillRatio);
+      const waterHeight = 320 - waterY;
+      const wave1 = `M -180,${waterY} Q -135,${waterY-11} -90,${waterY} Q -45,${waterY+11} 0,${waterY} Q 45,${waterY-11} 90,${waterY} Q 135,${waterY+11} 180,${waterY} Q 225,${waterY-11} 270,${waterY} Q 315,${waterY+11} 360,${waterY} Q 405,${waterY-11} 450,${waterY} Q 495,${waterY+11} 540,${waterY} L 540,320 L -180,320 Z`;
+      const wave2 = `M -270,${waterY+2} Q -225,${waterY-8} -180,${waterY+2} Q -135,${waterY+12} -90,${waterY+2} Q -45,${waterY-8} 0,${waterY+2} Q 45,${waterY+12} 90,${waterY+2} Q 135,${waterY-8} 180,${waterY+2} Q 225,${waterY+12} 270,${waterY+2} Q 315,${waterY-8} 360,${waterY+2} Q 405,${waterY+12} 450,${waterY+2} Q 495,${waterY-8} 540,${waterY+2} L 540,320 L -270,320 Z`;
+      document.getElementById('needle-group')?.setAttribute('style', `transform:rotate(${angle}deg);transform-origin:180px 180px`);
+      document.getElementById('water-body')?.setAttribute('y', waterY.toFixed(1));
+      document.getElementById('water-body')?.setAttribute('height', waterHeight.toFixed(1));
+      document.getElementById('wave-1')?.setAttribute('d', wave1);
+      document.getElementById('wave-2')?.setAttribute('d', wave2);
+      document.getElementById('water-line')?.setAttribute('y1', waterY.toFixed(1));
+      document.getElementById('water-line')?.setAttribute('y2', waterY.toFixed(1));
+    }
+    setText('[data-i18n="val-wx-temp"]', formatTemperature(liveState.airTempC, currentLang));
+    setText('[data-i18n="val-water-temp"]', formatTemperature(liveState.waterTempC, currentLang));
+    setText('[data-i18n="val-wind-speed"]', formatWindSpeed(liveState.windMps, liveState.windGustMps, currentLang));
+    setText('[data-i18n="val-wind-dir"]', directionFromDegrees(liveState.windDirectionDeg, currentLang));
+    setText('[data-i18n="unit-wind"]', metricLangs.has(currentLang) ? (currentLang === 'ua' ? ' км/год' : currentLang === 'ru' ? ' км/ч' : ' km/h') : ' mph');
+    setText('[data-i18n="val-surf-height"]', formatWaveHeight(liveState.waveHeightM, currentLang));
+    setText('[data-i18n="unit-surf-height"]', metricLangs.has(currentLang) ? ' м' : ' ft');
+    const uvText = liveState.uv == null ? d['unavailable'] : liveState.uv.toFixed(1);
+    const uvValue = document.querySelector('.metric-item [data-i18n="low-val"]')?.parentElement;
+    if (uvValue) uvValue.firstChild.textContent = uvText;
+    setTone(document.querySelector('[data-i18n="water-temp"]')?.closest('.metric-item'), waterTempScore(liveState.waterTempC));
+    setTone(document.querySelector('[data-i18n="wind"]')?.closest('.metric-item'), windScore(liveState.windMps));
+    setTone(document.querySelector('[data-i18n="uv-index"]')?.closest('.metric-item'), uvScore(liveState.uv));
+    setTone(document.querySelector('[data-i18n="surf-height"]')?.closest('.metric-item'), surfScore(liveState.waveHeightM));
+    if (liveState.updatedAt) {
+      setText('[data-i18n="data-updated"]', `${currentLang === 'ru' ? 'Данные NOAA' : currentLang === 'ua' ? 'Дані NOAA' : currentLang === 'es' ? 'Datos NOAA' : 'NOAA data'} · ${currentLang === 'ru' ? 'обновлено' : currentLang === 'ua' ? 'оновлено' : currentLang === 'es' ? 'actualizado' : 'updated'} ${formatClock(liveState.updatedAt, currentLang)}`);
+    }
+    window.updateTideWalkScore(liveState.weatherState);
+  }
+
+  async function loadTides() {
+    const latest = await fetchJson(noaaUrl({
+      date: 'latest',
+      station: STATION_ID,
+      product: 'water_level',
+      datum: 'MLLW',
+      units: 'metric',
+      time_zone: 'lst_ldt',
+      application: 'TideWalkScore',
+      format: 'json',
+    }));
+    if (!latest.data?.length) throw new Error('NOAA water_level unavailable');
+    const currentLevel = Number(latest.data[0].v);
+    const currentTime = parseNoaaLocalTime(latest.data[0].t);
+    const beginDate = noaaDate(new Date(currentTime.getTime() - 24 * 3600000));
+    const predictions = await fetchJson(noaaUrl({
+      product: 'predictions',
+      begin_date: beginDate,
+      range: '72',
+      datum: 'MLLW',
+      station: STATION_ID,
+      time_zone: 'lst_ldt',
+      units: 'metric',
+      interval: 'hilo',
+      application: 'TideWalkScore',
+      format: 'json',
+    }));
+    const hilo = (predictions.predictions || [])
+      .map(item => ({ time: parseNoaaLocalTime(item.t), height: Number(item.v), type: item.type }))
+      .filter(item => Number.isFinite(item.height) && (item.type === 'H' || item.type === 'L'))
+      .sort((a, b) => a.time - b.time);
+    if (hilo.length < 2) throw new Error('NOAA hilo predictions unavailable');
+    let previous = null;
+    let next = null;
+    for (let i = 0; i < hilo.length - 1; i += 1) {
+      if (hilo[i].time <= currentTime && currentTime <= hilo[i + 1].time) {
+        previous = hilo[i];
+        next = hilo[i + 1];
+        break;
+      }
+    }
+    if (!previous || !next) {
+      next = hilo.find(item => item.time > currentTime) || hilo[hilo.length - 1];
+      previous = hilo[Math.max(0, hilo.indexOf(next) - 1)];
+    }
+    const total = next.time - previous.time;
+    const progress = total > 0 ? clamp((currentTime - previous.time) / total, 0, 1) : 0;
+    const lowHeight = Math.min(previous.height, next.height);
+    const highHeight = Math.max(previous.height, next.height);
+    const fillRatio = highHeight > lowHeight ? clamp((currentLevel - lowHeight) / (highHeight - lowHeight), 0, 1) : progress;
+    liveState.tide = {
+      currentTime,
+      currentLevel,
+      previous,
+      next,
+      progress,
+      fillRatio,
+      falling: previous.type === 'H',
+      walkLow: nextWalkLow(hilo, currentTime),
+    };
+    liveState.updatedAt = currentTime;
+  }
+
+  async function loadNoaaProduct(product) {
+    const data = await fetchJson(noaaUrl({
+      date: 'latest',
+      station: STATION_ID,
+      product,
+      units: 'metric',
+      time_zone: 'lst_ldt',
+      application: 'TideWalkScore',
+      format: 'json',
+    }));
+    return data.data?.[0] || null;
+  }
+
+  async function loadWaterTemperature() {
+    try {
+      const row = await loadNoaaProduct('water_temperature');
+      const value = Number(row?.v);
+      if (Number.isFinite(value)) liveState.waterTempC = value;
+    } catch (error) {
+      console.warn('water_temperature unavailable', error);
+    }
+  }
+
+  async function loadWind() {
+    try {
+      const row = await loadNoaaProduct('wind');
+      const speed = Number(row?.s);
+      const gust = Number(row?.g);
+      const direction = Number(row?.d);
+      if (Number.isFinite(speed)) liveState.windMps = speed;
+      if (Number.isFinite(gust)) liveState.windGustMps = gust;
+      if (Number.isFinite(direction)) liveState.windDirectionDeg = direction;
+    } catch (error) {
+      console.warn('wind unavailable', error);
+    }
+  }
+
+  async function loadWeather() {
+    try {
+      const point = await fetchJson(NWS_POINTS_API);
+      const hourlyUrl = point.properties?.forecastHourly;
+      if (hourlyUrl) {
+        const hourly = await fetchJson(hourlyUrl);
+        const period = hourly.properties?.periods?.[0];
+        if (period) {
+          const tempC = period.temperatureUnit === 'F'
+            ? (Number(period.temperature) - 32) * 5 / 9
+            : Number(period.temperature);
+          if (Number.isFinite(tempC)) liveState.airTempC = tempC;
+          liveState.weatherState = weatherCodeToState(null, period.shortForecast || '');
+        }
+      }
+    } catch (error) {
+      console.warn('NWS weather unavailable', error);
+    }
+  }
+
+  async function loadOpenMeteo() {
+    try {
+      const forecast = await fetchJson(openMeteoUrl(OPEN_METEO_API, {
+        latitude: SPRINGMAID.lat,
+        longitude: SPRINGMAID.lon,
+        current: 'temperature_2m,weather_code,uv_index',
+        temperature_unit: 'celsius',
+        wind_speed_unit: 'ms',
+        timezone: 'America/New_York',
+      }));
+      const current = forecast.current || {};
+      const temp = Number(current.temperature_2m);
+      const uv = Number(current.uv_index);
+      const code = Number(current.weather_code);
+      if (Number.isFinite(temp) && liveState.airTempC == null) liveState.airTempC = temp;
+      if (Number.isFinite(uv)) liveState.uv = uv;
+      if (Number.isFinite(code)) liveState.weatherState = weatherCodeToState(code);
+    } catch (error) {
+      console.warn('Open-Meteo forecast unavailable', error);
+    }
+    try {
+      const marine = await fetchJson(openMeteoUrl(OPEN_METEO_MARINE_API, {
+        latitude: SPRINGMAID.lat,
+        longitude: SPRINGMAID.lon,
+        current: 'wave_height',
+        timezone: 'America/New_York',
+      }));
+      const wave = Number(marine.current?.wave_height);
+      if (Number.isFinite(wave)) liveState.waveHeightM = wave;
+    } catch (error) {
+      console.warn('Open-Meteo marine unavailable', error);
+    }
+  }
+
+  async function refreshLiveData() {
+    try {
+      await loadTides();
+      renderLiveData();
+    } catch (error) {
+      console.warn('NOAA tide data unavailable', error);
+    }
+    await Promise.allSettled([
+      loadWaterTemperature(),
+      loadWind(),
+      loadWeather(),
+      loadOpenMeteo(),
+    ]);
+    if (window.setWeatherVisual) window.setWeatherVisual(liveState.weatherState);
+    renderLiveData();
+  }
+
   function applyLang(lang) {
     const d = T[lang] || T.en;
     document.documentElement.lang = lang === 'ua' ? 'uk' : lang;
@@ -645,7 +1102,7 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
     const tpLo = document.getElementById('tp-lo');
     if (tpHi) tpHi.textContent = d['bezel-hi'];
     if (tpLo) tpLo.textContent = d['bezel-lo'];
-    if (window.updateTideWalkScore) window.updateTideWalkScore();
+    renderLiveData();
   }
 
   /* ── Tick marks ── */
@@ -690,6 +1147,8 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
   const langSeq=['en','ru','ua','es'],langCode={en:'EN',ru:'RU',ua:'UA',es:'ES'};
   let langIdx=0,currentLang='en';
   applyLang(currentLang);
+  refreshLiveData();
+  setInterval(refreshLiveData, 15 * 60 * 1000);
   setInterval(()=>updateLocalTime(currentLang),60000);
   document.getElementById('lang-btn').addEventListener('click',()=>{
     langIdx=(langIdx+1)%langSeq.length;
@@ -703,239 +1162,328 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
 
 /* ── Canvas Weather Renderer ── */
 (function(){
-  const canvas=document.getElementById('wxcanvas');
-  const wxbg=document.getElementById('wxbg');
-  if(!canvas||!wxbg) return;
-  const ctx=canvas.getContext('2d');
-  let W=0,H=0,particles=[],wxState='storm',driftT=0,lastTime=0,lightningAlpha=0,nextLightning=5,rafId=0;
-  let motionEnabled=false;
-  const motionBtn=document.getElementById('motion-btn');
-
-  const ICONS={
-    storm:'⛈️',rain:'🌧️',cloudy:'☁️','partly-cloudy':'⛅',
-    sunny:'☀️','clear-night':'🌙'
-  };
-  const SKIES={
-    storm:[['#16082e',0],['#0b051c',.55],['#040210',1]],
-    rain:[['#141830',0],['#0a0d1e',.55],['#04060e',1]],
-    cloudy:[['#20294a',0],['#101528',.56],['#050710',1]],
-    'partly-cloudy':[['#0c1d48',0],['#071225',.6],['#03080e',1]],
-    sunny:[['#102b73',0],['#071840',.5],['#030a18',1]],
-    'clear-night':[['#03050e',0],['#020408',.6],['#010204',1]]
-  };
-  const CLOUDS={
-    storm:[
-      {x:-.05,y:-.08,w:.75,h:.38,tc:'rgba(95,72,170,.9)',bc:'rgba(60,42,130,.7)',a:.88},
-      {x:.28,y:-.12,w:.85,h:.42,tc:'rgba(80,60,155,.85)',bc:'rgba(48,34,118,.65)',a:.82},
-      {x:-.1,y:.14,w:.65,h:.3,tc:'rgba(110,85,185,.8)',bc:'rgba(68,50,142,.6)',a:.75},
-      {x:.45,y:.1,w:.7,h:.32,tc:'rgba(72,55,148,.75)',bc:'rgba(45,32,112,.55)',a:.7}
-    ],
-    rain:[
-      {x:-.08,y:-.06,w:.7,h:.35,tc:'rgba(65,70,125,.88)',bc:'rgba(42,46,100,.68)',a:.85},
-      {x:.3,y:-.1,w:.78,h:.38,tc:'rgba(55,60,112,.82)',bc:'rgba(35,40,90,.62)',a:.78},
-      {x:-.12,y:.16,w:.6,h:.28,tc:'rgba(75,80,138,.75)',bc:'rgba(50,55,108,.56)',a:.7}
-    ],
-    cloudy:[
-      {x:-.16,y:-.12,w:.88,h:.44,tc:'rgba(88,98,155,.96)',bc:'rgba(52,60,118,.78)',a:.96},
-      {x:.22,y:-.16,w:.96,h:.46,tc:'rgba(72,82,140,.92)',bc:'rgba(42,50,108,.72)',a:.92},
-      {x:-.14,y:.16,w:.74,h:.34,tc:'rgba(98,108,165,.86)',bc:'rgba(60,68,128,.66)',a:.84},
-      {x:.38,y:.12,w:.78,h:.36,tc:'rgba(78,88,145,.82)',bc:'rgba(46,54,112,.62)',a:.8}
-    ],
-    'partly-cloudy':[
-      {x:-.15,y:-.18,w:.55,h:.28,tc:'rgba(100,112,175,.7)',bc:'rgba(70,82,148,.52)',a:.72},
-      {x:.55,y:-.22,w:.6,h:.3,tc:'rgba(90,102,165,.65)',bc:'rgba(62,74,140,.48)',a:.65}
-    ],
-    sunny:[
-      {x:.35,y:-.28,w:.45,h:.22,tc:'rgba(120,140,200,.45)',bc:'rgba(85,105,170,.32)',a:.4}
-    ],
-    'clear-night':[]
-  };
+  const canvas = document.getElementById('wxcanvas');
+  const ctx = canvas.getContext('2d');
+  const motionBtn = document.getElementById('motion-btn');
+  let W, H, rafId = 0;
+  let motionEnabled = false;
 
   function resize(){
-    const isMobile=window.matchMedia('(max-width: 640px)').matches;
-    const dpr=Math.min(window.devicePixelRatio||1,isMobile?1.5:2);
-    W=canvas.width=Math.floor(window.innerWidth*dpr);
-    H=canvas.height=Math.floor(window.innerHeight*dpr);
-    canvas.style.width=window.innerWidth+'px';
-    canvas.style.height=window.innerHeight+'px';
-    ctx.setTransform(dpr,0,0,dpr,0,0);
-    W=window.innerWidth;H=window.innerHeight;
+    const isMobile = window.matchMedia('(max-width: 640px)').matches;
+    const dpr = Math.min(window.devicePixelRatio || 1, isMobile ? 1.5 : 2);
+    canvas.width = Math.floor(window.innerWidth * dpr);
+    canvas.height = Math.floor(window.innerHeight * dpr);
+    canvas.style.width = window.innerWidth + 'px';
+    canvas.style.height = window.innerHeight + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    W = window.innerWidth;
+    H = window.innerHeight;
     initParticles(wxState);
     renderStatic();
   }
-
-  function rng(seed){
-    const x=Math.sin(seed*9301+49297)*233280;
-    return x-Math.floor(x);
-  }
-  const STARS=Array.from({length:150},(_,i)=>({
-    x:rng(i*3+1),y:rng(i*2+2)*.65,r:rng(i*5+3)*1.6+.4,op:rng(i*7+4)*.55+.3
-  }));
-
+  // ── Rain particles ──
+  let particles = [];
   function initParticles(state){
-    particles=[];
-    const isMobile=window.matchMedia('(max-width: 640px)').matches;
-    const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const scale=isMobile?.65:1;
-    const n=reduced?0:Math.round((state==='storm'?120:state==='rain'?80:0)*scale);
-    for(let i=0;i<n;i++){
+    particles = [];
+    const isMobile = window.matchMedia('(max-width: 640px)').matches;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const scale = isMobile ? 0.65 : 1;
+    const n = reduced ? 0 : Math.round((state === 'storm' ? 120 : state === 'rain' ? 80 : 0) * scale);
+    for(let i = 0; i < n; i++){
       particles.push({
-        x:Math.random()*W,y:Math.random()*H,
-        speed:Math.random()*6+(state==='storm'?10:6),
-        len:Math.random()*12+7,
-        op:Math.random()*.18+(state==='storm'?.1:.08)
+        x: Math.random() * W,
+        y: Math.random() * H,
+        speed: Math.random() * 7 + (state === 'storm' ? 12 : 7),
+        len:   Math.random() * 14 + 8,
+        op:    Math.random() * 0.35 + 0.15
       });
     }
   }
 
-  function setWxState(state){
-    if(!SKIES[state]) state='storm';
-    wxState=state;
-    wxbg.className=state;
-    document.body.dataset.weather=state;
-    const icon=document.querySelector('.wx-icon');
-    if(icon) icon.textContent=ICONS[state];
-    initParticles(state);
-    if(window.updateTideWalkScore) window.updateTideWalkScore(state);
-    renderStatic();
-  }
-  window.setWeatherState=setWxState;
+  // ── Deterministic pseudo-random (for stable stars) ──
+  function rng(seed){ let x = Math.sin(seed * 9301 + 49297) * 233280; return x - Math.floor(x); }
 
-  function drawCloud(x,y,w,h,topColor,botColor,alpha){
+  // ── Stars (precomputed once) ──
+  const STARS = Array.from({length:150}, (_,i) => ({
+    x: rng(i*3+1),
+    y: rng(i*2+2) * 0.65,
+    r: rng(i*5+3) * 1.6 + 0.4,
+    op: rng(i*7+4) * 0.55 + 0.3
+  }));
+
+  // ── Cloud shape helper ──
+  function drawCloud(x, y, w, h, topColor, botColor, alpha){
     ctx.save();
-    ctx.globalAlpha=alpha;
-    ctx.shadowBlur=18;
-    ctx.shadowColor=topColor;
-    [
-      {dx:.12,dy:.55,r:.38},{dx:.3,dy:.38,r:.44},{dx:.5,dy:.32,r:.5},
-      {dx:.7,dy:.4,r:.42},{dx:.87,dy:.55,r:.36}
-    ].forEach(b=>{
-      const bx=x+b.dx*w,by=y+b.dy*h,br=b.r*h;
-      const g=ctx.createRadialGradient(bx,by-br*.2,br*.1,bx,by,br);
-      g.addColorStop(0,topColor);g.addColorStop(.6,botColor);g.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.beginPath();ctx.arc(bx,by,br,0,Math.PI*2);ctx.fillStyle=g;ctx.fill();
+    ctx.globalAlpha = alpha;
+    ctx.shadowBlur = 18;
+    ctx.shadowColor = topColor;
+
+    const bumps = [
+      { dx: 0.12, dy: 0.55, r: 0.38 },
+      { dx: 0.3,  dy: 0.38, r: 0.44 },
+      { dx: 0.5,  dy: 0.32, r: 0.5  },
+      { dx: 0.7,  dy: 0.4,  r: 0.42 },
+      { dx: 0.87, dy: 0.55, r: 0.36 },
+    ];
+
+    bumps.forEach(b => {
+      const bx = x + b.dx * w;
+      const by = y + b.dy * h;
+      const br = b.r * h;
+      const g = ctx.createRadialGradient(bx, by - br*0.2, br*0.1, bx, by, br);
+      g.addColorStop(0, topColor);
+      g.addColorStop(0.6, botColor);
+      g.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.beginPath();
+      ctx.arc(bx, by, br, 0, Math.PI*2);
+      ctx.fillStyle = g;
+      ctx.fill();
     });
-    ctx.shadowBlur=0;
-    const baseY=y+h*.65,baseH=h*.35,bg=ctx.createLinearGradient(0,baseY,0,baseY+baseH);
-    bg.addColorStop(0,botColor);bg.addColorStop(1,'rgba(0,0,0,0)');
-    ctx.beginPath();ctx.rect(x+w*.08,baseY,w*.84,baseH);ctx.fillStyle=bg;ctx.fill();
+
+    ctx.shadowBlur = 0;
+    const baseY = y + h * 0.65;
+    const baseH = h * 0.35;
+    const bg = ctx.createLinearGradient(0, baseY, 0, baseY + baseH);
+    bg.addColorStop(0, botColor);
+    bg.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.beginPath();
+    ctx.rect(x + w*0.08, baseY, w*0.84, baseH);
+    ctx.fillStyle = bg;
+    ctx.fill();
+
     ctx.restore();
   }
 
-  function renderScene(dt,{animated=false}={}){
-    if(animated) driftT+=dt;
-    ctx.clearRect(0,0,W,H);
+  // ── Sky gradients per state ──
+  const SKIES = {
+    storm:          [['#16082e',0],['#0b051c',0.55],['#040210',1]],
+    rain:           [['#141830',0],['#0a0d1e',0.55],['#04060e',1]],
+    cloudy:         [['#1a1e3a',0],['#0d1020',0.55],['#050710',1]],
+    'partly-cloudy':[['#0c1d48',0],['#071225',0.6], ['#03080e',1]],
+    sunny:          [['#0d2260',0],['#071840',0.5], ['#030a18',1]],
+    'clear-night':  [['#03050e',0],['#020408',0.6], ['#010204',1]],
+  };
 
-    const skyGrad=ctx.createLinearGradient(0,0,0,H);
-    SKIES[wxState].forEach(([c,p])=>skyGrad.addColorStop(p,c));
-    ctx.fillStyle=skyGrad;ctx.fillRect(0,0,W,H);
+  // ── Cloud configs per state ──
+  const CLOUDS = {
+    storm: [
+      { x:-0.05, y:-0.08, w:0.75, h:0.38, tc:'rgba(95,72,170,0.9)',  bc:'rgba(60,42,130,0.7)', a:0.88 },
+      { x: 0.28, y:-0.12, w:0.85, h:0.42, tc:'rgba(80,60,155,0.85)', bc:'rgba(48,34,118,0.65)',a:0.82 },
+      { x:-0.1,  y: 0.14, w:0.65, h:0.30, tc:'rgba(110,85,185,0.8)', bc:'rgba(68,50,142,0.6)', a:0.75 },
+      { x: 0.45, y: 0.10, w:0.70, h:0.32, tc:'rgba(72,55,148,0.75)', bc:'rgba(45,32,112,0.55)',a:0.70 },
+    ],
+    rain: [
+      { x:-0.08, y:-0.06, w:0.70, h:0.35, tc:'rgba(65,70,125,0.88)', bc:'rgba(42,46,100,0.68)',a:0.85 },
+      { x: 0.30, y:-0.10, w:0.78, h:0.38, tc:'rgba(55,60,112,0.82)', bc:'rgba(35,40,90,0.62)', a:0.78 },
+      { x:-0.12, y: 0.16, w:0.60, h:0.28, tc:'rgba(75,80,138,0.75)', bc:'rgba(50,55,108,0.56)',a:0.70 },
+    ],
+    cloudy: [
+      { x:-0.12, y:-0.10, w:0.80, h:0.40, tc:'rgba(72,80,130,0.9)',  bc:'rgba(48,55,105,0.72)',a:0.92 },
+      { x: 0.25, y:-0.14, w:0.90, h:0.44, tc:'rgba(60,68,118,0.88)', bc:'rgba(40,48,96,0.68)', a:0.88 },
+      { x:-0.08, y: 0.18, w:0.68, h:0.32, tc:'rgba(85,92,145,0.80)', bc:'rgba(58,65,118,0.62)',a:0.80 },
+      { x: 0.40, y: 0.14, w:0.72, h:0.34, tc:'rgba(65,72,122,0.75)', bc:'rgba(44,50,100,0.58)',a:0.75 },
+    ],
+    'partly-cloudy': [
+      { x:-0.15, y:-0.18, w:0.55, h:0.28, tc:'rgba(100,112,175,0.7)',bc:'rgba(70,82,148,0.52)',a:0.72 },
+      { x: 0.55, y:-0.22, w:0.60, h:0.30, tc:'rgba(90,102,165,0.65)',bc:'rgba(62,74,140,0.48)',a:0.65 },
+    ],
+    sunny: [
+      { x: 0.35, y:-0.28, w:0.45, h:0.22, tc:'rgba(120,140,200,0.45)',bc:'rgba(85,105,170,0.32)',a:0.40 },
+    ],
+    'clear-night': [],
+  };
 
-    if(wxState==='sunny'||wxState==='partly-cloudy'){
-      const sx=W*.9,sy=H*-.04,sr=Math.min(W,H)*(wxState==='sunny'?.58:.4);
-      const sg=ctx.createRadialGradient(sx,sy,0,sx,sy,sr);
-      sg.addColorStop(0,'rgba(255,205,70,.58)');
-      sg.addColorStop(.25,'rgba(255,155,30,.3)');
-      sg.addColorStop(.55,'rgba(255,95,0,.12)');
-      sg.addColorStop(1,'rgba(255,50,0,0)');
-      ctx.beginPath();ctx.arc(sx,sy,sr,0,Math.PI*2);ctx.fillStyle=sg;ctx.fill();
-      if(wxState==='sunny'){
-        ctx.save();ctx.translate(sx,sy);
+  // ── Lightning state ──
+  let lightningAlpha = 0;
+  let nextLightning   = 3 + Math.random() * 8;
+  let lastTime        = 0;
+
+  // ── Animation offsets for cloud drift ──
+  let driftT = 0;
+
+  // Current weather state
+  let wxState = 'storm';
+  function setWxState(s){
+    wxState = s;
+    document.body.dataset.weather = s;
+    if(!Number.isFinite(W) || !Number.isFinite(H)) return;
+    initParticles(s);
+    if(window.updateTideWalkScore) window.updateTideWalkScore(s);
+    renderStatic();
+  }
+  window.setWeatherVisual = setWxState;
+
+  // Watch #wxbg className changes
+  const wxbg = document.getElementById('wxbg');
+  if(wxbg){
+    setWxState(wxbg.className || 'storm');
+    new MutationObserver(()=>setWxState(wxbg.className || 'storm'))
+      .observe(wxbg, {attributes:true, attributeFilter:['class']});
+  }
+
+  function renderScene(dt, { animated = false } = {}){
+    if(animated) driftT += dt;
+    ctx.clearRect(0, 0, W, H);
+
+    // Sky
+    const skyStops = SKIES[wxState] || SKIES.storm;
+    const skyGrad = ctx.createLinearGradient(0, 0, 0, H);
+    skyStops.forEach(([c,p]) => skyGrad.addColorStop(p, c));
+    ctx.fillStyle = skyGrad;
+    ctx.fillRect(0, 0, W, H);
+
+    // Sun / warm glow
+    if(wxState === 'sunny' || wxState === 'partly-cloudy'){
+      const sx = W * 0.9, sy = H * -0.04;
+      const sr = Math.min(W, H) * (wxState === 'sunny' ? 0.55 : 0.40);
+      const sg = ctx.createRadialGradient(sx, sy, 0, sx, sy, sr);
+      sg.addColorStop(0,   'rgba(255,195,55,0.55)');
+      sg.addColorStop(0.25,'rgba(255,145,20,0.28)');
+      sg.addColorStop(0.55,'rgba(255,85,0,0.10)');
+      sg.addColorStop(1,   'rgba(255,50,0,0)');
+      ctx.beginPath(); ctx.arc(sx, sy, sr, 0, Math.PI*2);
+      ctx.fillStyle = sg; ctx.fill();
+
+      if(wxState === 'sunny'){
+        ctx.save();
+        ctx.translate(sx, sy);
         for(let i=0;i<16;i++){
-          const a=i/16*Math.PI*2;
-          ctx.beginPath();ctx.moveTo(Math.cos(a)*sr*.06,Math.sin(a)*sr*.06);
-          ctx.lineTo(Math.cos(a)*sr*.95,Math.sin(a)*sr*.95);
-          ctx.strokeStyle='rgba(255,190,50,.06)';ctx.lineWidth=22;ctx.stroke();
+          const a = (i/16)*Math.PI*2;
+          ctx.beginPath();
+          ctx.moveTo(Math.cos(a)*sr*0.06, Math.sin(a)*sr*0.06);
+          ctx.lineTo(Math.cos(a)*sr*0.95, Math.sin(a)*sr*0.95);
+          ctx.strokeStyle = 'rgba(255,190,50,0.055)';
+          ctx.lineWidth = 22;
+          ctx.stroke();
         }
         ctx.restore();
       }
     }
 
-    if(wxState==='clear-night'){
-      STARS.forEach(s=>{
-        const twinkle=animated?.7+.3*Math.sin(driftT*1.8+s.r*7):.84;
-        ctx.beginPath();ctx.arc(s.x*W,s.y*H,s.r,0,Math.PI*2);
-        ctx.fillStyle=`rgba(255,255,255,${s.op*twinkle})`;ctx.fill();
+    // Moon + stars (clear-night)
+    if(wxState === 'clear-night'){
+      STARS.forEach(s => {
+        const twinkle = animated ? 0.7 + 0.3 * Math.sin(driftT * 1.8 + s.r * 7) : 0.84;
+        ctx.beginPath();
+        ctx.arc(s.x * W, s.y * H, s.r, 0, Math.PI*2);
+        ctx.fillStyle = `rgba(255,255,255,${s.op * twinkle})`;
+        ctx.fill();
       });
-      const mx=W*.72,my=H*.09,mr=26,mglow=ctx.createRadialGradient(mx,my,mr*.8,mx,my,mr*4);
-      mglow.addColorStop(0,'rgba(200,215,255,.14)');mglow.addColorStop(1,'rgba(200,215,255,0)');
-      ctx.beginPath();ctx.arc(mx,my,mr*4,0,Math.PI*2);ctx.fillStyle=mglow;ctx.fill();
-      ctx.beginPath();ctx.arc(mx,my,mr,0,Math.PI*2);ctx.fillStyle='rgba(232,238,255,.92)';ctx.fill();
-      ctx.beginPath();ctx.arc(mx+mr*.28,my-mr*.08,mr*.82,0,Math.PI*2);ctx.fillStyle=SKIES['clear-night'][0][0];ctx.fill();
+      const mx = W*0.72, my = H*0.09, mr = 26;
+      const mglow = ctx.createRadialGradient(mx,my,mr*0.8,mx,my,mr*4);
+      mglow.addColorStop(0,'rgba(200,215,255,0.14)');
+      mglow.addColorStop(1,'rgba(200,215,255,0)');
+      ctx.beginPath(); ctx.arc(mx, my, mr*4, 0, Math.PI*2);
+      ctx.fillStyle = mglow; ctx.fill();
+      ctx.beginPath(); ctx.arc(mx, my, mr, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(232,238,255,0.92)'; ctx.fill();
+      ctx.beginPath(); ctx.arc(mx+mr*0.28, my-mr*0.08, mr*0.82, 0, Math.PI*2);
+      ctx.fillStyle = SKIES['clear-night'][0][0]; ctx.fill();
     }
 
-    (CLOUDS[wxState]||[]).forEach((c,i)=>{
-      const drift=animated?Math.sin(driftT*.12+i*1.5)*.025:0;
-      drawCloud((c.x+drift)*W,c.y*H,c.w*W,c.h*H,c.tc,c.bc,c.a);
+    // Clouds (with gentle drift)
+    const clouds = CLOUDS[wxState] || [];
+    clouds.forEach((c, i) => {
+      const drift = animated ? Math.sin(driftT * 0.12 + i * 1.5) * 0.025 : 0;
+      drawCloud(
+        (c.x + drift) * W,
+        c.y * H,
+        c.w * W,
+        c.h * H,
+        c.tc, c.bc, c.a
+      );
     });
 
-    if(particles.length){
+    // Rain particles
+    if(particles.length > 0){
       ctx.save();
-      particles.forEach(p=>{
-        if(animated){p.y+=p.speed;p.x-=p.speed*.12}
-        if(p.y>H){p.y=-p.len;p.x=Math.random()*W}
-        ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p.x-p.len*.12,p.y+p.len);
-        ctx.strokeStyle=`rgba(175,210,250,${p.op})`;
-        ctx.lineWidth=wxState==='storm'?1.15:.9;ctx.stroke();
+      particles.forEach(p => {
+        if(animated){
+          p.y += p.speed;
+          p.x -= p.speed * 0.12;
+        }
+        if(p.y > H){ p.y = -p.len; p.x = Math.random() * W; }
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+        ctx.lineTo(p.x - p.len*0.12, p.y + p.len);
+        ctx.strokeStyle = `rgba(175,210,250,${p.op})`;
+        ctx.lineWidth = wxState === 'storm' ? 1.4 : 1.0;
+        ctx.stroke();
       });
       ctx.restore();
     }
 
-    if(animated&&wxState==='storm'&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
-      nextLightning-=dt;
-      if(nextLightning<=0){lightningAlpha=.14;nextLightning=6+Math.random()*11}
-      if(lightningAlpha>0){
-        ctx.fillStyle=`rgba(200,220,255,${lightningAlpha})`;
-        ctx.fillRect(0,0,W,H);
-        lightningAlpha=Math.max(0,lightningAlpha-dt*2.2);
+    // Lightning flash (storm only)
+    if(animated && wxState === 'storm' && !window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+      nextLightning -= dt;
+      if(nextLightning <= 0){
+        lightningAlpha = 0.18;
+        nextLightning = 5 + Math.random() * 10;
+      }
+      if(lightningAlpha > 0){
+        ctx.fillStyle = `rgba(200,220,255,${lightningAlpha})`;
+        ctx.fillRect(0, 0, W, H);
+        if(lightningAlpha > 0.14){
+          setTimeout(()=>{ lightningAlpha = 0.12; }, 80);
+          setTimeout(()=>{ lightningAlpha = 0; }, 160);
+        } else {
+          lightningAlpha = Math.max(0, lightningAlpha - dt * 2.5);
+        }
       }
     }
+
   }
 
   function renderStatic(){
-    renderScene(0,{animated:false});
+    renderScene(0, { animated: false });
   }
 
   function render(ts){
-    const isMobile=window.matchMedia('(max-width: 640px)').matches;
-    const targetFps=isMobile?24:30;
-    const perf={frameMs:1000/targetFps};
-    if(!motionEnabled||document.hidden){rafId=0;return}
-    if(lastTime&&ts-lastTime<perf.frameMs){rafId=requestAnimationFrame(render);return}
-    const dt=Math.min((ts-lastTime)/1000,.05)||0;
-    lastTime=ts;
-    renderScene(dt,{animated:true});
-    rafId=requestAnimationFrame(render);
+    const isMobile = window.matchMedia('(max-width: 640px)').matches;
+    const targetFps = isMobile ? 24 : 30;
+    const perf = { frameMs: 1000 / targetFps };
+    if(!motionEnabled || document.hidden){ rafId = 0; return; }
+    if(lastTime && ts - lastTime < perf.frameMs){ rafId = requestAnimationFrame(render); return; }
+    const dt = Math.min((ts - lastTime) / 1000, 0.05) || 0;
+    lastTime = ts;
+    renderScene(dt, { animated: true });
+    rafId = requestAnimationFrame(render);
   }
 
   function updateMotionButton(){
     if(!motionBtn) return;
-    motionBtn.textContent=motionEnabled?'Ⅱ':'▶';
-    motionBtn.setAttribute('aria-pressed',String(motionEnabled));
-    motionBtn.setAttribute('aria-label',motionEnabled?'Stop weather animation':'Start weather animation');
+    motionBtn.textContent = motionEnabled ? 'Ⅱ' : '▶';
+    motionBtn.setAttribute('aria-pressed', String(motionEnabled));
+    motionBtn.setAttribute('aria-label', motionEnabled ? 'Stop weather animation' : 'Start weather animation');
   }
 
   function startMotion(){
     if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     document.body.classList.add('motion-on');
-    motionEnabled=true;lastTime=0;updateMotionButton();
-    if(!rafId) rafId=requestAnimationFrame(render);
+    motionEnabled = true;
+    lastTime = 0;
+    updateMotionButton();
+    if(!rafId) rafId = requestAnimationFrame(render);
   }
 
   function stopMotion(){
-    motionEnabled=false;updateMotionButton();
+    motionEnabled = false;
+    updateMotionButton();
     document.body.classList.remove('motion-on');
-    if(rafId){cancelAnimationFrame(rafId);rafId=0}
+    if(rafId){
+      cancelAnimationFrame(rafId);
+      rafId = 0;
+    }
     renderStatic();
   }
-  window.startMotion=startMotion;
-  window.stopMotion=stopMotion;
+  window.startMotion = startMotion;
+  window.stopMotion = stopMotion;
 
   resize();
-  window.addEventListener('resize',resize);
-  document.addEventListener('visibilitychange',()=>{lastTime=0;if(!document.hidden&&motionEnabled)startMotion()});
-  if(motionBtn) motionBtn.addEventListener('click',()=>motionEnabled?stopMotion():startMotion());
-  setWxState(new URLSearchParams(location.search).get('weather')||wxbg.className||'storm');
-  new MutationObserver(()=>setWxState(wxbg.className||'storm')).observe(wxbg,{attributes:true,attributeFilter:['class']});
+  window.addEventListener('resize', resize);
+  initParticles(wxState);
+  document.addEventListener('visibilitychange',()=>{ lastTime = 0; if(!document.hidden && motionEnabled) startMotion(); });
+  if(motionBtn) motionBtn.addEventListener('click',()=>motionEnabled ? stopMotion() : startMotion());
   stopMotion();
 })();
 </script>
