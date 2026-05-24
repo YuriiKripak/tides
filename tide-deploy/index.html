@@ -46,24 +46,29 @@ body::before{
 }
 
 /* ── HEADER ── */
-.hdr{display:flex;align-items:center;justify-content:space-between;padding-bottom:4px}
+.hdr{display:grid;grid-template-columns:1fr auto 1fr;align-items:start;gap:10px;padding-bottom:4px}
 .loc-name{font-size:19px;font-weight:780;letter-spacing:.02em;line-height:1}
 .loc-sub{
   font-size:9.8px;font-weight:600;
   color:var(--muted);letter-spacing:.10em;text-transform:uppercase;margin-top:2px
 }
-.wx{
+.weather-readout{
+  justify-self:center;display:flex;align-items:center;gap:6px;
+  padding-top:2px;color:var(--text);
+  text-shadow:0 0 18px rgba(125,211,252,.12)
+}
+.wx-icon{font-size:20px;line-height:1}
+.wx-temp{font-size:23px;font-weight:800;letter-spacing:.01em;line-height:1}
+.wx-controls{
+  justify-self:end;
   display:flex;align-items:center;gap:5px;
   background:var(--glass);border:1px solid var(--bdr);
-  border-radius:20px;padding:5px 11px 5px 8px;
+  border-radius:18px;padding:4px 6px;
   backdrop-filter:blur(14px) saturate(1.25);
   -webkit-backdrop-filter:blur(14px) saturate(1.25)
 }
-.wx-icon{font-size:15px;line-height:1}
-.wx-temp{font-size:15px;font-weight:700;letter-spacing:.02em}
 
 /* ── LANG (globe cycle in header) ── */
-.wx-sep{width:1px;align-self:stretch;margin:3px 2px;background:var(--bdr)}
 .wx-lang{
   font:inherit;font-size:12px;font-weight:700;
   letter-spacing:.06em;color:var(--teal);background:none;border:none;
@@ -71,10 +76,10 @@ body::before{
   display:flex;align-items:center;gap:4px;transition:background .15s
 }
 .wx-motion{
-  width:25px;height:25px;border:0;border-radius:50%;
+  width:28px;height:28px;border:1px solid rgba(125,211,252,.14);border-radius:50%;
   display:grid;place-items:center;cursor:pointer;
   font:inherit;font-size:10px;font-weight:800;color:#7f9bb2;
-  background:rgba(255,255,255,.04);
+  background:rgba(255,255,255,.06);
   transition:background .15s,color .15s,box-shadow .15s
 }
 .wx-motion[aria-pressed="true"]{color:var(--teal);background:rgba(15,184,168,.16);box-shadow:0 0 10px rgba(15,184,168,.22)}
@@ -224,12 +229,12 @@ body::before{
       <div class="loc-name">Myrtle Beach</div>
       <div class="loc-sub" data-i18n="loc-sub">Local time · --:--</div>
     </div>
-    <div class="wx">
+    <div class="weather-readout" aria-label="Current weather">
       <span class="wx-icon">⛈️</span>
       <span class="wx-temp" data-i18n="val-wx-temp">75 °F</span>
-      <div class="wx-sep"></div>
+    </div>
+    <div class="wx-controls" aria-label="Display controls">
       <button class="wx-motion" id="motion-btn" type="button" aria-label="Start weather animation" aria-pressed="false">▶</button>
-      <div class="wx-sep"></div>
       <button class="wx-lang" id="lang-btn">🌐 <span id="lang-label">EN</span></button>
     </div>
   </div>
