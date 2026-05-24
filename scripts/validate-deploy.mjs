@@ -70,8 +70,11 @@ const requiredSnippets = [
   "function startMotion()",
   "function stopMotion()",
   "let motionEnabled = false",
-  "const targetFps = isMobile ? 24 : 30",
-  "const perf = { frameMs: 1000 / targetFps }",
+  "const targetFps = isMobile ? 12 : 20",
+  "const frameMs = 1000 / targetFps",
+  "const staticCanvas = document.createElement('canvas')",
+  "function rebuildStaticLayer()",
+  "body.motion-on .grid.metrics-panel",
   "--glass:rgba(8,18,36,.88)",
 ];
 

@@ -60,6 +60,11 @@ body::before{
   backdrop-filter:blur(14px) saturate(1.25);
   -webkit-backdrop-filter:blur(14px) saturate(1.25)
 }
+body.motion-on .wx-controls{
+  backdrop-filter:none;
+  -webkit-backdrop-filter:none;
+  background:rgba(8,18,36,.94)
+}
 
 /* ── LANG (globe cycle in header) ── */
 .wx-lang{
@@ -154,6 +159,11 @@ body.motion-on .bubble{
   box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 14px 36px rgba(0,0,0,.22);
   backdrop-filter:blur(18px) saturate(1.15);
   -webkit-backdrop-filter:blur(18px) saturate(1.15)
+}
+body.motion-on .grid.metrics-panel{
+  backdrop-filter:none;
+  -webkit-backdrop-filter:none;
+  background:linear-gradient(180deg,rgba(21,18,49,.94),rgba(5,8,24,.96))
 }
 .score-hero{
   border:1px solid rgba(255,255,255,.09);
@@ -1370,20 +1380,26 @@ body.motion-on .bubble{
   const canvas = document.getElementById('wxcanvas');
   const ctx = canvas.getContext('2d');
   const motionBtn = document.getElementById('motion-btn');
-  let W, H, rafId = 0;
+  const staticCanvas = document.createElement('canvas');
+  const staticCtx = staticCanvas.getContext('2d');
+  let W, H, dpr = 1, rafId = 0, frameTimer = 0;
   let motionEnabled = false;
 
   function resize(){
     const isMobile = window.matchMedia('(max-width: 640px)').matches;
-    const dpr = Math.min(window.devicePixelRatio || 1, isMobile ? 1.5 : 2);
+    dpr = Math.min(window.devicePixelRatio || 1, isMobile ? 1.25 : 2);
     canvas.width = Math.floor(window.innerWidth * dpr);
     canvas.height = Math.floor(window.innerHeight * dpr);
+    staticCanvas.width = canvas.width;
+    staticCanvas.height = canvas.height;
     canvas.style.width = window.innerWidth + 'px';
     canvas.style.height = window.innerHeight + 'px';
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    staticCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
     W = window.innerWidth;
     H = window.innerHeight;
     initParticles(wxState);
+    rebuildStaticLayer();
     renderStatic();
   }
   // ── Rain particles ──
@@ -1392,7 +1408,7 @@ body.motion-on .bubble{
     particles = [];
     const isMobile = window.matchMedia('(max-width: 640px)').matches;
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const scale = isMobile ? 0.65 : 1;
+    const scale = isMobile ? 0.28 : 0.75;
     const n = reduced ? 0 : Math.round((state === 'storm' ? 120 : state === 'rain' ? 80 : 0) * scale);
     for(let i = 0; i < n; i++){
       particles.push({
@@ -1417,11 +1433,11 @@ body.motion-on .bubble{
   }));
 
   // ── Cloud shape helper ──
-  function drawCloud(x, y, w, h, topColor, botColor, alpha){
-    ctx.save();
-    ctx.globalAlpha = alpha;
-    ctx.shadowBlur = 18;
-    ctx.shadowColor = topColor;
+  function drawCloud(target, x, y, w, h, topColor, botColor, alpha){
+    target.save();
+    target.globalAlpha = alpha;
+    target.shadowBlur = 18;
+    target.shadowColor = topColor;
 
     const bumps = [
       { dx: 0.12, dy: 0.55, r: 0.38 },
@@ -1435,28 +1451,28 @@ body.motion-on .bubble{
       const bx = x + b.dx * w;
       const by = y + b.dy * h;
       const br = b.r * h;
-      const g = ctx.createRadialGradient(bx, by - br*0.2, br*0.1, bx, by, br);
+      const g = target.createRadialGradient(bx, by - br*0.2, br*0.1, bx, by, br);
       g.addColorStop(0, topColor);
       g.addColorStop(0.6, botColor);
       g.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.beginPath();
-      ctx.arc(bx, by, br, 0, Math.PI*2);
-      ctx.fillStyle = g;
-      ctx.fill();
+      target.beginPath();
+      target.arc(bx, by, br, 0, Math.PI*2);
+      target.fillStyle = g;
+      target.fill();
     });
 
-    ctx.shadowBlur = 0;
+    target.shadowBlur = 0;
     const baseY = y + h * 0.65;
     const baseH = h * 0.35;
-    const bg = ctx.createLinearGradient(0, baseY, 0, baseY + baseH);
+    const bg = target.createLinearGradient(0, baseY, 0, baseY + baseH);
     bg.addColorStop(0, botColor);
     bg.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.beginPath();
-    ctx.rect(x + w*0.08, baseY, w*0.84, baseH);
-    ctx.fillStyle = bg;
-    ctx.fill();
+    target.beginPath();
+    target.rect(x + w*0.08, baseY, w*0.84, baseH);
+    target.fillStyle = bg;
+    target.fill();
 
-    ctx.restore();
+    target.restore();
   }
 
   // ── Sky gradients per state ──
@@ -1513,6 +1529,7 @@ body.motion-on .bubble{
     document.body.dataset.weather = s;
     if(!Number.isFinite(W) || !Number.isFinite(H)) return;
     initParticles(s);
+    rebuildStaticLayer();
     if(window.updateTideWalkScore) window.updateTideWalkScore(s);
     renderStatic();
   }
@@ -1526,42 +1543,40 @@ body.motion-on .bubble{
       .observe(wxbg, {attributes:true, attributeFilter:['class']});
   }
 
-  function renderScene(dt, { animated = false } = {}){
-    if(animated) driftT += dt;
-    ctx.clearRect(0, 0, W, H);
+  function drawBackdrop(target, { animated = false } = {}){
 
     // Sky
     const skyStops = SKIES[wxState] || SKIES.storm;
-    const skyGrad = ctx.createLinearGradient(0, 0, 0, H);
+    const skyGrad = target.createLinearGradient(0, 0, 0, H);
     skyStops.forEach(([c,p]) => skyGrad.addColorStop(p, c));
-    ctx.fillStyle = skyGrad;
-    ctx.fillRect(0, 0, W, H);
+    target.fillStyle = skyGrad;
+    target.fillRect(0, 0, W, H);
 
     // Sun / warm glow
     if(wxState === 'sunny' || wxState === 'partly-cloudy'){
       const sx = W * 0.9, sy = H * -0.04;
       const sr = Math.min(W, H) * (wxState === 'sunny' ? 0.55 : 0.40);
-      const sg = ctx.createRadialGradient(sx, sy, 0, sx, sy, sr);
+      const sg = target.createRadialGradient(sx, sy, 0, sx, sy, sr);
       sg.addColorStop(0,   'rgba(255,195,55,0.55)');
       sg.addColorStop(0.25,'rgba(255,145,20,0.28)');
       sg.addColorStop(0.55,'rgba(255,85,0,0.10)');
       sg.addColorStop(1,   'rgba(255,50,0,0)');
-      ctx.beginPath(); ctx.arc(sx, sy, sr, 0, Math.PI*2);
-      ctx.fillStyle = sg; ctx.fill();
+      target.beginPath(); target.arc(sx, sy, sr, 0, Math.PI*2);
+      target.fillStyle = sg; target.fill();
 
       if(wxState === 'sunny'){
-        ctx.save();
-        ctx.translate(sx, sy);
+        target.save();
+        target.translate(sx, sy);
         for(let i=0;i<16;i++){
           const a = (i/16)*Math.PI*2;
-          ctx.beginPath();
-          ctx.moveTo(Math.cos(a)*sr*0.06, Math.sin(a)*sr*0.06);
-          ctx.lineTo(Math.cos(a)*sr*0.95, Math.sin(a)*sr*0.95);
-          ctx.strokeStyle = 'rgba(255,190,50,0.055)';
-          ctx.lineWidth = 22;
-          ctx.stroke();
+          target.beginPath();
+          target.moveTo(Math.cos(a)*sr*0.06, Math.sin(a)*sr*0.06);
+          target.lineTo(Math.cos(a)*sr*0.95, Math.sin(a)*sr*0.95);
+          target.strokeStyle = 'rgba(255,190,50,0.055)';
+          target.lineWidth = 22;
+          target.stroke();
         }
-        ctx.restore();
+        target.restore();
       }
     }
 
@@ -1569,28 +1584,29 @@ body.motion-on .bubble{
     if(wxState === 'clear-night'){
       STARS.forEach(s => {
         const twinkle = animated ? 0.7 + 0.3 * Math.sin(driftT * 1.8 + s.r * 7) : 0.84;
-        ctx.beginPath();
-        ctx.arc(s.x * W, s.y * H, s.r, 0, Math.PI*2);
-        ctx.fillStyle = `rgba(255,255,255,${s.op * twinkle})`;
-        ctx.fill();
+        target.beginPath();
+        target.arc(s.x * W, s.y * H, s.r, 0, Math.PI*2);
+        target.fillStyle = `rgba(255,255,255,${s.op * twinkle})`;
+        target.fill();
       });
       const mx = W*0.72, my = H*0.09, mr = 26;
-      const mglow = ctx.createRadialGradient(mx,my,mr*0.8,mx,my,mr*4);
+      const mglow = target.createRadialGradient(mx,my,mr*0.8,mx,my,mr*4);
       mglow.addColorStop(0,'rgba(200,215,255,0.14)');
       mglow.addColorStop(1,'rgba(200,215,255,0)');
-      ctx.beginPath(); ctx.arc(mx, my, mr*4, 0, Math.PI*2);
-      ctx.fillStyle = mglow; ctx.fill();
-      ctx.beginPath(); ctx.arc(mx, my, mr, 0, Math.PI*2);
-      ctx.fillStyle = 'rgba(232,238,255,0.92)'; ctx.fill();
-      ctx.beginPath(); ctx.arc(mx+mr*0.28, my-mr*0.08, mr*0.82, 0, Math.PI*2);
-      ctx.fillStyle = SKIES['clear-night'][0][0]; ctx.fill();
+      target.beginPath(); target.arc(mx, my, mr*4, 0, Math.PI*2);
+      target.fillStyle = mglow; target.fill();
+      target.beginPath(); target.arc(mx, my, mr, 0, Math.PI*2);
+      target.fillStyle = 'rgba(232,238,255,0.92)'; target.fill();
+      target.beginPath(); target.arc(mx+mr*0.28, my-mr*0.08, mr*0.82, 0, Math.PI*2);
+      target.fillStyle = SKIES['clear-night'][0][0]; target.fill();
     }
 
-    // Clouds (with gentle drift)
+    // Clouds are cached for animated mode; drift is used only for desktop/static rendering.
     const clouds = CLOUDS[wxState] || [];
     clouds.forEach((c, i) => {
       const drift = animated ? Math.sin(driftT * 0.12 + i * 1.5) * 0.025 : 0;
       drawCloud(
+        target,
         (c.x + drift) * W,
         c.y * H,
         c.w * W,
@@ -1598,7 +1614,9 @@ body.motion-on .bubble{
         c.tc, c.bc, c.a
       );
     });
+  }
 
+  function drawWeatherOverlay(dt, { animated = false } = {}){
     // Rain particles
     if(particles.length > 0){
       ctx.save();
@@ -1636,7 +1654,23 @@ body.motion-on .bubble{
         }
       }
     }
+  }
 
+  function rebuildStaticLayer(){
+    if(!Number.isFinite(W) || !Number.isFinite(H)) return;
+    staticCtx.clearRect(0, 0, W, H);
+    drawBackdrop(staticCtx, { animated: false });
+  }
+
+  function renderScene(dt, { animated = false } = {}){
+    if(animated) driftT += dt;
+    ctx.clearRect(0, 0, W, H);
+    if(animated && staticCanvas.width && staticCanvas.height){
+      ctx.drawImage(staticCanvas, 0, 0, W, H);
+    } else {
+      drawBackdrop(ctx, { animated });
+    }
+    drawWeatherOverlay(dt, { animated });
   }
 
   function renderStatic(){
@@ -1645,14 +1679,16 @@ body.motion-on .bubble{
 
   function render(ts){
     const isMobile = window.matchMedia('(max-width: 640px)').matches;
-    const targetFps = isMobile ? 24 : 30;
-    const perf = { frameMs: 1000 / targetFps };
+    const targetFps = isMobile ? 12 : 20;
+    const frameMs = 1000 / targetFps;
+    rafId = 0;
     if(!motionEnabled || document.hidden){ rafId = 0; return; }
-    if(lastTime && ts - lastTime < perf.frameMs){ rafId = requestAnimationFrame(render); return; }
     const dt = Math.min((ts - lastTime) / 1000, 0.05) || 0;
     lastTime = ts;
     renderScene(dt, { animated: true });
-    rafId = requestAnimationFrame(render);
+    frameTimer = window.setTimeout(() => {
+      if(motionEnabled && !document.hidden) rafId = requestAnimationFrame(render);
+    }, frameMs);
   }
 
   function updateMotionButton(){
@@ -1678,6 +1714,10 @@ body.motion-on .bubble{
     if(rafId){
       cancelAnimationFrame(rafId);
       rafId = 0;
+    }
+    if(frameTimer){
+      clearTimeout(frameTimer);
+      frameTimer = 0;
     }
     renderStatic();
   }
