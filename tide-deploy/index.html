@@ -46,21 +46,21 @@ body::before{
 }
 
 /* ── HEADER ── */
-.hdr{display:grid;grid-template-columns:1fr auto 1fr;align-items:start;gap:10px;padding-bottom:4px}
-.loc-name{font-size:19px;font-weight:780;letter-spacing:.02em;line-height:1}
+.hdr{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:10px;padding-bottom:4px}
+.hdr-place{min-width:0}
+.loc-name{font-size:19px;font-weight:780;letter-spacing:.02em;line-height:1;white-space:nowrap}
 .loc-sub{
   font-size:9.8px;font-weight:600;
-  color:var(--muted);letter-spacing:.10em;text-transform:uppercase;margin-top:2px
+  color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-top:2px;white-space:nowrap
 }
+.hdr-side{justify-self:end;display:flex;flex-direction:column;align-items:flex-end;gap:5px}
 .weather-readout{
-  justify-self:center;display:flex;align-items:center;gap:6px;
-  padding-top:2px;color:var(--text);
+  display:flex;align-items:center;gap:6px;color:var(--text);
   text-shadow:0 0 18px rgba(125,211,252,.12)
 }
-.wx-icon{font-size:20px;line-height:1}
-.wx-temp{font-size:23px;font-weight:800;letter-spacing:.01em;line-height:1}
+.wx-icon{font-size:17px;line-height:1}
+.wx-temp{font-size:18px;font-weight:800;letter-spacing:.01em;line-height:1}
 .wx-controls{
-  justify-self:end;
   display:flex;align-items:center;gap:5px;
   background:var(--glass);border:1px solid var(--bdr);
   border-radius:18px;padding:4px 6px;
@@ -113,8 +113,8 @@ body::before{
 /* Wave animations */
 @keyframes wave1{from{transform:translateX(0)}to{transform:translateX(180px)}}
 @keyframes wave2{from{transform:translateX(0)}to{transform:translateX(270px)}}
-.wave1{animation:wave1 4s linear infinite}
-.wave2{animation:wave2 2.8s linear infinite}
+body.motion-on .wave1{animation:wave1 4s linear infinite}
+body.motion-on .wave2{animation:wave2 2.8s linear infinite}
 
 @keyframes settle{
   0%  {transform:rotate(-85deg);opacity:0}
@@ -207,7 +207,7 @@ body::before{
 .card.danger  .cv{color:#f87171}
 .card.info    .cv{color:var(--teal)}
 .cv small{font-size:14px;font-weight:500;color:#6a8499}
-.cv.walk-time{font-size:23px;line-height:1.05;white-space:nowrap}
+.cv.walk-time{font-size:24px;line-height:1.05;white-space:nowrap}
 .cv.walk-time small{font-size:12px}
 
 /* ── FOOTER ── */
@@ -225,17 +225,19 @@ body::before{
 
   <!-- HEADER -->
   <div class="hdr">
-    <div>
+    <div class="hdr-place">
       <div class="loc-name">Myrtle Beach</div>
       <div class="loc-sub" data-i18n="loc-sub">Local time · --:--</div>
     </div>
-    <div class="weather-readout" aria-label="Current weather">
-      <span class="wx-icon">⛈️</span>
-      <span class="wx-temp" data-i18n="val-wx-temp">75 °F</span>
-    </div>
-    <div class="wx-controls" aria-label="Display controls">
-      <button class="wx-motion" id="motion-btn" type="button" aria-label="Start weather animation" aria-pressed="false">▶</button>
-      <button class="wx-lang" id="lang-btn">🌐 <span id="lang-label">EN</span></button>
+    <div class="hdr-side">
+      <div class="wx-controls" aria-label="Display controls">
+        <button class="wx-motion" id="motion-btn" type="button" aria-label="Start weather animation" aria-pressed="false">▶</button>
+        <button class="wx-lang" id="lang-btn">🌐 <span id="lang-label">EN</span></button>
+      </div>
+      <div class="weather-readout" aria-label="Current weather">
+        <span class="wx-icon">⛈️</span>
+        <span class="wx-temp" data-i18n="val-wx-temp">75 °F</span>
+      </div>
     </div>
   </div>
 
@@ -391,7 +393,7 @@ body::before{
     </div>
     <div class="card info">
       <div class="cl" data-i18n="walk-window">Walk Window</div>
-      <div class="cv walk-time">08:12 – 10:42<small> AM</small></div>
+      <div class="cv walk-time">08:12 10:42</div>
     </div>
     <div class="card safe">
       <div class="cl" data-i18n="water-temp">Water Temp</div>
@@ -870,12 +872,14 @@ body::before{
 
   function startMotion(){
     if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    document.body.classList.add('motion-on');
     motionEnabled=true;lastTime=0;updateMotionButton();
     if(!rafId) rafId=requestAnimationFrame(render);
   }
 
   function stopMotion(){
     motionEnabled=false;updateMotionButton();
+    document.body.classList.remove('motion-on');
     if(rafId){cancelAnimationFrame(rafId);rafId=0}
     renderStatic();
   }
