@@ -443,8 +443,8 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
       'next-high':    'Next high',
       'next-tide-time':'09:12 AM',
       'in-word':      'in',
-      'rising-tide':  'High / Low Tide',
-      'falling-tide': 'High / Low Tide',
+      'rising-tide':  'High Tide',
+      'falling-tide': 'Low Tide',
       'now-until':    'Now until',
       'window-passed':'Window passed',
       'unavailable':  'n/a',
@@ -486,8 +486,8 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
       'next-high':    'Следующий прилив',
       'next-tide-time':'09:12',
       'in-word':      'через',
-      'rising-tide':  'Прилив / отлив',
-      'falling-tide': 'Прилив / отлив',
+      'rising-tide':  'Прилив',
+      'falling-tide': 'Отлив',
       'now-until':    'Сейчас до',
       'window-passed':'Окно прошло',
       'unavailable':  'н/д',
@@ -529,8 +529,8 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
       'next-high':    'Наступний приплив',
       'next-tide-time':'09:12',
       'in-word':      'через',
-      'rising-tide':  'Приплив / відплив',
-      'falling-tide': 'Приплив / відплив',
+      'rising-tide':  'Приплив',
+      'falling-tide': 'Відплив',
       'now-until':    'Зараз до',
       'window-passed':'Вікно минуло',
       'unavailable':  'н/д',
@@ -572,8 +572,8 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
       'next-high':    'Próxima pleamar',
       'next-tide-time':'09:12 AM',
       'in-word':      'en',
-      'rising-tide':  'Marea alta / baja',
-      'falling-tide': 'Marea alta / baja',
+      'rising-tide':  'Pleamar',
+      'falling-tide': 'Bajamar',
       'now-until':    'Ahora hasta',
       'window-passed':'Ventana pasada',
       'unavailable':  'n/d',
@@ -626,6 +626,8 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
     windDirText: '',
     windSource: '',
     airTempC: null,
+    nwsWeatherState: '',
+    openMeteoWeatherState: '',
     uv: null,
     waveHeightM: null,
     weatherState: document.body.dataset.weather || 'storm',
@@ -753,6 +755,28 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
     return 'clear-night';
   }
 
+  function weatherIconForState(state) {
+    return ({
+      storm: '⛈️',
+      rain: '🌧️',
+      cloudy: '☁️',
+      'partly-cloudy': '🌦️',
+      sunny: '☀️',
+      'clear-night': '🌙',
+    })[state] || '🌦️';
+  }
+
+  function weatherSeverity(state) {
+    return ({ storm: 5, rain: 4, cloudy: 3, 'partly-cloudy': 2, sunny: 1, 'clear-night': 1 })[state] || 0;
+  }
+
+  function reconcileWeatherState() {
+    if (weatherSeverity(liveState.nwsWeatherState) >= weatherSeverity(liveState.openMeteoWeatherState)) {
+      return liveState.nwsWeatherState || liveState.openMeteoWeatherState || liveState.weatherState;
+    }
+    return liveState.openMeteoWeatherState || liveState.nwsWeatherState || liveState.weatherState;
+  }
+
   function walkWindowForLow(lowTime) {
     if (!lowTime) return null;
     return {
@@ -791,6 +815,13 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
     return 45;
   }
 
+  function waterTempTone(c) {
+    if (c == null) return 'caution';
+    if (c >= 22 && c <= 30) return 'safe';
+    if ((c >= 18 && c < 22) || (c > 30 && c <= 32)) return 'caution';
+    return 'danger';
+  }
+
   function windScore(mps) {
     if (mps == null) return 70;
     const mph = mps * 2.23694;
@@ -798,6 +829,14 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
     if (mph <= 15) return 76;
     if (mph <= 22) return 52;
     return 25;
+  }
+
+  function windTone(mps) {
+    if (mps == null) return 'caution';
+    const mph = mps * 2.23694;
+    if (mph <= 8) return 'safe';
+    if (mph <= 15) return 'caution';
+    return 'danger';
   }
 
   function surfScore(m) {
@@ -809,6 +848,14 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
     return 20;
   }
 
+  function surfTone(m) {
+    if (m == null) return 'caution';
+    const ft = m * 3.28084;
+    if (ft <= 2) return 'safe';
+    if (ft <= 3) return 'caution';
+    return 'danger';
+  }
+
   function uvScore(uv) {
     if (uv == null) return 75;
     if (uv < 3) return 96;
@@ -818,12 +865,12 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
   }
 
   function uvBand(uv) {
-    if (uv == null) return { key:'unavailable', score:75 };
-    if (uv < 3) return { key:'uv-low', score:96 };
-    if (uv < 6) return { key:'uv-moderate', score:72 };
-    if (uv < 8) return { key:'uv-high', score:50 };
-    if (uv < 11) return { key:'uv-very-high', score:25 };
-    return { key:'uv-extreme', score:10 };
+    if (uv == null) return { key:'unavailable', tone:'caution', score:75 };
+    if (uv < 3) return { key:'uv-low', tone:'safe', score:96 };
+    if (uv < 6) return { key:'uv-moderate', tone:'caution', score:72 };
+    if (uv < 8) return { key:'uv-high', tone:'danger', score:50 };
+    if (uv < 11) return { key:'uv-very-high', tone:'danger', score:25 };
+    return { key:'uv-extreme', tone:'danger', score:10 };
   }
 
   function scoreBand(score) {
@@ -882,6 +929,13 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
     if (!card) return;
     card.classList.remove('safe', 'caution', 'danger');
     card.classList.add(score >= 70 ? 'safe' : score >= 45 ? 'caution' : 'danger');
+  }
+
+  function setToneClass(el, tone) {
+    const card = typeof el === 'string' ? document.querySelector(el) : el;
+    if (!card) return;
+    card.classList.remove('safe', 'caution', 'danger');
+    card.classList.add(tone || 'caution');
   }
 
   function formatTemperature(c, lang = currentLang) {
@@ -947,6 +1001,7 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
       document.getElementById('water-line')?.setAttribute('y2', waterY.toFixed(1));
     }
     setText('[data-i18n="val-wx-temp"]', formatTemperature(liveState.airTempC, currentLang));
+    setText('.wx-icon', weatherIconForState(liveState.weatherState));
     setText('[data-i18n="val-water-temp"]', formatTemperature(liveState.waterTempC, currentLang));
     setText('[data-i18n="val-wind-speed"]', formatWindSpeed(liveState.windMps, liveState.windGustMps, currentLang));
     setText('[data-i18n="val-wind-dir"]', directionFromDegrees(liveState.windDirectionDeg, currentLang) || liveState.windDirText);
@@ -958,10 +1013,10 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
     const uvValue = document.querySelector('.metric-item [data-i18n="low-val"]')?.parentElement;
     if (uvValue) uvValue.firstChild.textContent = uvText;
     setText('[data-i18n="low-val"]', ` · ${d[uv.key] || d.unavailable}`);
-    setTone(document.querySelector('[data-i18n="water-temp"]')?.closest('.metric-item'), waterTempScore(liveState.waterTempC));
-    setTone(document.querySelector('[data-i18n="wind"]')?.closest('.metric-item'), windScore(liveState.windMps));
-    setTone(document.querySelector('[data-i18n="uv-index"]')?.closest('.metric-item'), uvScore(liveState.uv));
-    setTone(document.querySelector('[data-i18n="surf-height"]')?.closest('.metric-item'), surfScore(liveState.waveHeightM));
+    setToneClass(document.querySelector('[data-i18n="water-temp"]')?.closest('.metric-item'), waterTempTone(liveState.waterTempC));
+    setToneClass(document.querySelector('[data-i18n="wind"]')?.closest('.metric-item'), windTone(liveState.windMps));
+    setToneClass(document.querySelector('[data-i18n="uv-index"]')?.closest('.metric-item'), uv.tone);
+    setToneClass(document.querySelector('[data-i18n="surf-height"]')?.closest('.metric-item'), surfTone(liveState.waveHeightM));
     if (liveState.updatedAt) {
       setText('[data-i18n="data-updated"]', `${currentLang === 'ru' ? 'Данные NOAA' : currentLang === 'ua' ? 'Дані NOAA' : currentLang === 'es' ? 'Datos NOAA' : 'NOAA data'} · ${currentLang === 'ru' ? 'обновлено' : currentLang === 'ua' ? 'оновлено' : currentLang === 'es' ? 'actualizado' : 'updated'} ${formatClock(liveState.updatedAt, currentLang)}`);
     }
@@ -1079,10 +1134,6 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
         const hourly = await fetchJson(hourlyUrl);
         const period = hourly.properties?.periods?.[0];
         if (period) {
-          const tempC = period.temperatureUnit === 'F'
-            ? (Number(period.temperature) - 32) * 5 / 9
-            : Number(period.temperature);
-          if (Number.isFinite(tempC)) liveState.airTempC = tempC;
           const wind = parseWindMph(period.windSpeed);
           if (wind) {
             liveState.windMps = wind.lowMps;
@@ -1091,7 +1142,8 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
             liveState.windDirText = period.windDirection || '';
             liveState.windSource = 'nws';
           }
-          liveState.weatherState = weatherCodeToState(null, period.shortForecast || '');
+          liveState.nwsWeatherState = weatherCodeToState(null, period.shortForecast || '');
+          liveState.weatherState = reconcileWeatherState();
         }
       }
     } catch (error) {
@@ -1113,9 +1165,10 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
       const temp = Number(current.temperature_2m);
       const uv = Number(current.uv_index);
       const code = Number(current.weather_code);
-      if (Number.isFinite(temp) && liveState.airTempC == null) liveState.airTempC = temp;
+      if (Number.isFinite(temp)) liveState.airTempC = temp;
       if (Number.isFinite(uv)) liveState.uv = uv;
-      if (Number.isFinite(code)) liveState.weatherState = weatherCodeToState(code);
+      if (Number.isFinite(code)) liveState.openMeteoWeatherState = weatherCodeToState(code);
+      liveState.weatherState = reconcileWeatherState();
     } catch (error) {
       console.warn('Open-Meteo forecast unavailable', error);
     }
