@@ -41,15 +41,21 @@ Future commits should use the repository-local GitHub noreply email rather than 
 
 ## GitHub Repository Settings
 
-For a public repository, enable these in GitHub if available for the account:
+For a public repository, enable these in GitHub:
 
 - Secret scanning
 - Push protection
 - Dependabot alerts
 - Dependabot security updates
-- Require review before merging pull requests into `main`
+- Branch protection for `main`
+- Require pull requests before merging into `main` when collaborators are added
+- Require status checks before merging when CI is added
+- Restrict who can push to `main`
+- Disable force pushes on `main`
 
 This repository includes `.github/dependabot.yml` for npm dependency update pull requests. GitHub security features such as secret scanning and push protection still need to be enabled in the GitHub web UI if they are not already active for the account.
+
+The public GitHub API should report `"protected": true` for the `main` branch after branch protection is configured.
 
 ## Cloudflare
 

@@ -56,6 +56,19 @@ npm run security:check
 
 Do not commit Cloudflare tokens, GitHub tokens, `.env` files, `.dev.vars`, `.npmrc`, SSH/private keys, `.claude/`, generated zip packages, or archived local builds.
 
+## Public Repository Settings
+
+Before relying on automatic public deployment, check GitHub repository settings:
+
+- The repository can stay public, but `main` should be protected.
+- Secret scanning and push protection should be enabled.
+- Dependabot alerts and Dependabot security updates should be enabled.
+- Direct pushes to `main` should be limited to the owner/admin workflow.
+- If collaborators are added later, require pull requests and passing checks before merging.
+- Do not add repository secrets unless a deployment method explicitly needs them.
+
+Cloudflare Workers Builds should use the GitHub integration and should not require Cloudflare API tokens in tracked files.
+
 To create a manual upload zip:
 
 ```sh

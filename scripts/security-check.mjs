@@ -1,6 +1,7 @@
 import { execFileSync } from "node:child_process";
 
 const forbiddenTrackedPaths = [
+  /^\.DS_Store$/,
   /^\.env(?:\.|$)/,
   /^\.dev\.vars(?:\.|$)/,
   /^\.claude\//,
@@ -9,7 +10,7 @@ const forbiddenTrackedPaths = [
   /^\.cloudflare\//,
   /^node_modules\//,
   /^tide_widget_png_v3\//,
-  /^tide-deploy\.zip$/,
+  /\.zip$/i,
   /\.npmrc$/,
   /\.(?:pem|key|p12|pfx)$/i,
   /(?:^|\/)id_(?:rsa|ed25519)$/,

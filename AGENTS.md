@@ -15,8 +15,17 @@ npm run security:check
 ```
 
 - Check `git status --short --ignored` before staging files. Ignored local files may remain on disk, but must not be force-added.
+- Treat `.DS_Store`, `*.zip`, generated screenshots, and local archive folders as private local artifacts even when they look harmless.
 - If a secret or private file is accidentally committed, stop and ask before rewriting history or force-pushing.
 - Future commits should use the repository-local GitHub noreply email. Do not change the local repo author email back to a personal address.
+
+## Public Repository Controls
+
+- `main` should be protected in GitHub before ongoing public use.
+- Disable direct pushes to `main` for anyone except the owner/admin workflow.
+- Require pull requests and passing checks before merging when collaborators are added.
+- Keep GitHub secret scanning, push protection, Dependabot alerts, and Dependabot security updates enabled.
+- Do not add GitHub Actions or Wrangler token deployment unless credentials are stored only in GitHub Secrets or Cloudflare-managed secret storage.
 
 ## Deployment Files
 
