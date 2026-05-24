@@ -39,16 +39,16 @@ body::before{
 }
 
 /* ── HEADER ── */
-.hdr{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:10px;padding-bottom:4px}
+.hdr{display:grid;grid-template-columns:minmax(118px,1fr) auto minmax(78px,1fr);align-items:start;gap:10px;padding-bottom:4px}
 .hdr-place{min-width:0}
 .loc-name{font-size:19px;font-weight:780;letter-spacing:.02em;line-height:1;white-space:nowrap}
 .loc-sub{
   font-size:9.8px;font-weight:600;
   color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-top:2px;white-space:nowrap
 }
-.hdr-side{justify-self:end;display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+.hdr-side{justify-self:end;display:flex;align-items:flex-start}
 .weather-readout{
-  display:flex;align-items:center;gap:6px;color:var(--text);
+  justify-self:center;display:flex;align-items:center;gap:6px;color:var(--text);
   text-shadow:0 0 18px rgba(125,211,252,.12)
 }
 .wx-icon{font-size:17px;line-height:1}
@@ -100,7 +100,7 @@ body::before{
   0%,100%{opacity:.82;stroke-width:.8}
   50%{opacity:1;stroke-width:2.2}
 }
-#score-beacon{animation:scorePulse 1.8s ease-in-out infinite}
+body.motion-on #score-beacon{animation:scorePulse 1.8s ease-in-out infinite}
 
 /* Wave animations */
 @keyframes wave1{from{transform:translateX(0)}to{transform:translateX(180px)}}
@@ -143,7 +143,7 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
 .st-next .d{color:var(--amber)}
 
 /* ── GRID ── */
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;flex:1;align-content:stretch}
+.grid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(3,minmax(86px,1fr));gap:6px;flex:1;align-content:stretch}
 .card{
   background:rgba(6,14,28,.88);border:1px solid var(--bdr);
   border-radius:11px;padding:12px 14px;
@@ -200,6 +200,11 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
 .cv.walk-time{font-size:24px;line-height:1.05;white-space:nowrap}
 .cv.walk-time small{font-size:12px}
 
+@media (max-width:340px){
+  .hdr{grid-template-columns:minmax(0,1fr) auto}
+  .weather-readout{display:none}
+}
+
 /* ── FOOTER ── */
 .foot{
   text-align:center;margin-top:5px;
@@ -219,14 +224,14 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
       <div class="loc-name">Myrtle Beach</div>
       <div class="loc-sub" data-i18n="loc-sub">Local time · --:--</div>
     </div>
+    <div class="weather-readout" aria-label="Current weather">
+      <span class="wx-icon">⛈️</span>
+      <span class="wx-temp" data-i18n="val-wx-temp">75 °F</span>
+    </div>
     <div class="hdr-side">
       <div class="wx-controls" aria-label="Display controls">
         <button class="wx-motion" id="motion-btn" type="button" aria-label="Start weather animation" aria-pressed="false">▶</button>
         <button class="wx-lang" id="lang-btn">🌐 <span id="lang-label">EN</span></button>
-      </div>
-      <div class="weather-readout" aria-label="Current weather">
-        <span class="wx-icon">⛈️</span>
-        <span class="wx-temp" data-i18n="val-wx-temp">75 °F</span>
       </div>
     </div>
   </div>
@@ -403,7 +408,7 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
     </div>
   </div>
 
-  <div class="foot">NOAA · 04:00 AM</div>
+  <div class="foot" data-i18n="data-updated">NOAA data · updated 04:00</div>
 
 </div>
 <script>
@@ -436,6 +441,7 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
       'unit-wind':    ' mph',
       'val-surf-height':'2–3',
       'unit-surf-height':' ft',
+      'data-updated': 'NOAA data · updated 04:00',
     },
     ru: {
       'loc-label':    'Местное время',
@@ -463,6 +469,7 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
       'unit-wind':    ' км/ч',
       'val-surf-height':'0.6–0.9',
       'unit-surf-height':' м',
+      'data-updated': 'Данные NOAA · обновлено 04:00',
     },
     ua: {
       'loc-label':    'Місцевий час',
@@ -490,6 +497,7 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
       'unit-wind':    ' км/год',
       'val-surf-height':'0.6–0.9',
       'unit-surf-height':' м',
+      'data-updated': 'Дані NOAA · оновлено 04:00',
     },
     es: {
       'loc-label':    'Hora local',
@@ -517,6 +525,7 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
       'unit-wind':    ' km/h',
       'val-surf-height':'0.6–0.9',
       'unit-surf-height':' m',
+      'data-updated': 'Datos NOAA · actualizado 04:00',
     },
   };
 
