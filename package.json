@@ -1,0 +1,14 @@
+{
+  "name": "myrtle-beach-tides",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "check": "node scripts/validate-deploy.mjs",
+    "security:check": "node scripts/security-check.mjs",
+    "deploy:cloudflare": "npx wrangler deploy",
+    "zip": "cd tide-deploy && zip -r ../tide-deploy.zip ."
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

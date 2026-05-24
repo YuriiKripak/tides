@@ -1,0 +1,29 @@
+.DS_Store
+node_modules/
+
+# Environment and local secrets
+.env
+.env.*
+.dev.vars
+.dev.vars.*
+.npmrc
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa
+id_ed25519
+
+# Cloudflare/Wrangler local state
+.wrangler/
+.cloudflare/
+
+# Local assistant/tooling state
+.claude/
+.playwright-mcp/
+
+# Generated deploy package. Cloudflare Pages deploys tide-deploy/ directly.
+tide-deploy.zip
+
+# Local archive of the previous implementation, kept on disk but not deployed.
+tide_widget_png_v3/

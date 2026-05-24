@@ -1,0 +1,17 @@
+{
+  "name": "Tide · Myrtle Beach",
+  "short_name": "Tide",
+  "description": "Real-time tide tracker for Myrtle Beach",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#05091a",
+  "theme_color": "#05091a",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

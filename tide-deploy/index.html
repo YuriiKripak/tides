@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Tide · Myrtle Beach</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="site.webmanifest">
+<meta name="theme-color" content="#05091a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tide">
+<link rel="apple-touch-icon" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;700;800;900&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#05091a;--teal:#0fb8a8;--amber:#f59e0b;
+  --orange:#fb923c;--sky:#7dd3fc;
+  --text:#d8e8f2;--muted:#4e6e88;
+  --glass:rgba(8,18,36,.88);--bdr:rgba(255,255,255,.09)
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:var(--bg)}
+body{
+  font-family:'Barlow Condensed',sans-serif;
+  color:var(--text);display:flex;justify-content:center
+}
+body::before{
+  content:'';position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse 80% 40% at 50% 105%,rgba(15,184,168,.07) 0%,transparent 55%),
+    radial-gradient(ellipse 50% 30% at 15% 5%,rgba(30,80,180,.06) 0%,transparent 50%);
+  pointer-events:none;z-index:0
+}
+.app{
+  position:relative;z-index:1;
+  width:100%;max-width:390px;min-height:100svh;
+  display:flex;flex-direction:column;
+  padding:max(env(safe-area-inset-top),16px) 18px max(env(safe-area-inset-bottom),10px)
+}
+.app::before{
+  content:'';position:fixed;inset:0;z-index:-1;
+  background:linear-gradient(180deg,rgba(3,7,16,.18),rgba(3,7,16,.28));
+  pointer-events:none
+}
+
+/* ── HEADER ── */
+.hdr{display:flex;align-items:center;justify-content:space-between;padding-bottom:4px}
+.loc-name{font-size:20px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;line-height:1}
+.loc-sub{
+  font-family:'DM Mono',monospace;font-size:9px;
+  color:var(--muted);letter-spacing:.14em;text-transform:uppercase;margin-top:2px
+}
+.wx{
+  display:flex;align-items:center;gap:5px;
+  background:var(--glass);border:1px solid var(--bdr);
+  border-radius:20px;padding:5px 11px 5px 8px;
+  backdrop-filter:blur(14px) saturate(1.25);
+  -webkit-backdrop-filter:blur(14px) saturate(1.25)
+}
+.wx-icon{font-size:15px;line-height:1}
+.wx-temp{font-size:15px;font-weight:700;letter-spacing:.02em}
+
+/* ── LANG (globe cycle in header) ── */
+.wx-sep{width:1px;align-self:stretch;margin:3px 2px;background:var(--bdr)}
+.wx-lang{
+  font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;
+  letter-spacing:.1em;color:var(--teal);background:none;border:none;
+  padding:3px 7px;border-radius:12px;cursor:pointer;
+  display:flex;align-items:center;gap:4px;transition:background .15s
+}
+.wx-lang:active{background:rgba(15,184,168,.18)}
+@keyframes lf{
+  0%{opacity:1;transform:translateY(0)}
+  45%{opacity:0;transform:translateY(-5px)}
+  55%{opacity:0;transform:translateY(5px)}
+  100%{opacity:1;transform:translateY(0)}
+}
+#lang-label{display:inline-block;min-width:18px;text-align:center}
+.la{animation:lf .22s ease}
+
+/* ── WEATHER BG ── */
+#wxbg{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+
+/* Base sky tint — purple for storm, warm for sunny */
+#wxbg::before{
+  content:'';position:absolute;inset:0;
+  opacity:0;transition:opacity 1.5s
+}
+.storm #wxbg::before,#wxbg.storm::before{
+  background:linear-gradient(170deg,rgba(55,35,110,.55) 0%,rgba(20,15,60,.3) 50%,transparent 75%);
+  opacity:1
+}
+.sunny #wxbg::before,#wxbg.sunny::before{
+  background:linear-gradient(170deg,rgba(20,60,120,.45) 0%,rgba(10,40,80,.2) 50%,transparent 75%);
+  opacity:1
+}
+
+/* Cloud blobs — blur reduced for visible shape */
+.wc{position:absolute;border-radius:50%;filter:blur(30px);opacity:0;transition:opacity 1.5s}
+.wc1{width:340px;height:170px;top:-70px;left:-90px;animation:wd1 28s ease-in-out infinite alternate}
+.wc2{width:420px;height:210px;top:-40px;left:20px;animation:wd2 22s ease-in-out infinite alternate}
+.wc3{width:260px;height:150px;top:50px;right:-80px;animation:wd3 17s ease-in-out infinite alternate}
+.wc4{width:200px;height:120px;top:110px;left:0;animation:wd1 34s ease-in-out infinite alternate-reverse}
+@keyframes wd1{from{transform:translate(0,0)}to{transform:translate(65px,12px)}}
+@keyframes wd2{from{transform:translate(-20px,0)}to{transform:translate(45px,10px)}}
+@keyframes wd3{from{transform:translate(0,0)}to{transform:translate(-55px,20px)}}
+.wrain,.wlightning,.wsun{display:none}
+
+/* ── storm ── */
+.storm .wc1{background:radial-gradient(ellipse at 40% 35%,rgba(145,125,220,.95) 0%,rgba(100,85,175,.7) 40%,transparent 70%);opacity:1}
+.storm .wc2{background:radial-gradient(ellipse at 55% 45%,rgba(110,95,195,.9) 0%,rgba(75,62,155,.65) 45%,transparent 70%);opacity:1}
+.storm .wc3{background:radial-gradient(ellipse at 48% 38%,rgba(160,140,230,.85) 0%,rgba(115,98,185,.6) 42%,transparent 70%);opacity:1}
+.storm .wc4{background:radial-gradient(ellipse at 42% 42%,rgba(90,75,165,.8) 0%,rgba(60,50,130,.55) 45%,transparent 70%);opacity:.9}
+.storm .wrain,.storm .wlightning{display:block}
+
+/* Rain — short offset streaks, not continuous stripes */
+.wrain{
+  position:absolute;inset:-120px -80px;
+  transform:rotate(8deg);transform-origin:center
+}
+.wrain::before,.wrain::after{
+  content:'';position:absolute;inset:0;
+  background-image:
+    radial-gradient(ellipse 1px 9px at 50% 50%,rgba(180,220,255,.18) 0 56%,transparent 68%),
+    radial-gradient(ellipse 1px 7px at 50% 50%,rgba(180,220,255,.10) 0 56%,transparent 70%);
+  background-size:18px 52px,31px 84px;
+  background-position:0 0,14px 29px;
+  animation:rf .46s linear infinite
+}
+.wrain::after{
+  opacity:.65;
+  background-size:23px 66px,37px 96px;
+  background-position:7px 21px,24px 47px;
+  animation-duration:.32s;animation-delay:-.12s
+}
+@keyframes rf{from{transform:translate3d(0,-58px,0)}to{transform:translate3d(0,58px,0)}}
+
+/* Lightning — double flash */
+.wlightning{position:absolute;inset:0;animation:lfl 9s ease infinite 2s}
+@keyframes lfl{
+  0%,87%,89.5%,91.5%,100%{opacity:0;background:transparent}
+  88%,90.5%{opacity:1;background:rgba(200,225,255,.1)}
+}
+
+/* ── sunny ── */
+.sunny .wc1{background:radial-gradient(ellipse at 45%,rgba(200,220,255,.25),transparent 65%);opacity:.7}
+.sunny .wc2{background:radial-gradient(ellipse at 55%,rgba(180,205,240,.18),transparent 65%);opacity:.55}
+.sunny .wsun{display:block}
+.wsun{
+  position:absolute;width:260px;height:260px;border-radius:50%;
+  right:-60px;top:-80px;
+  background:
+    radial-gradient(circle,rgba(255,210,60,.55) 0%,rgba(255,165,25,.28) 40%,rgba(255,120,0,.1) 65%,transparent 75%);
+  animation:sunp 7s ease-in-out infinite
+}
+@keyframes sunp{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:1;transform:scale(1.07)}}
+
+/* ── DIAL ── */
+.dial-wrap{display:flex;justify-content:center;padding:2px 0}
+.dial{
+  width:100%;max-width:344px;height:auto;overflow:visible;
+  filter:drop-shadow(0 6px 36px rgba(15,184,168,.09))
+}
+
+/* Wave animations */
+@keyframes wave1{from{transform:translateX(0)}to{transform:translateX(180px)}}
+@keyframes wave2{from{transform:translateX(0)}to{transform:translateX(270px)}}
+.wave1{animation:wave1 4s linear infinite}
+.wave2{animation:wave2 2.8s linear infinite}
+
+@keyframes settle{
+  0%  {transform:rotate(-85deg);opacity:0}
+  25% {opacity:1}
+  72% {transform:rotate(36deg)}
+  84% {transform:rotate(25deg)}
+  93% {transform:rotate(31deg)}
+  100%{transform:rotate(30deg)}
+}
+.ng{transform-origin:180px 180px;animation:settle 2.2s cubic-bezier(.22,.68,0,1.2) .5s both}
+
+@keyframes up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.hdr     {animation:up .5s ease  0s   both}
+.dial-wrap{animation:up .5s ease .12s both}
+.status  {animation:up .5s ease .30s both}
+.grid    {animation:up .5s ease .40s both}
+.foot    {animation:up .5s ease .50s both}
+
+/* ── STATUS ── */
+.status{
+  text-align:center;padding:5px 0 8px;
+  display:flex;flex-direction:column;align-items:center;gap:1px
+}
+.st-ey{
+  font-family:'DM Mono',monospace;font-size:8.5px;
+  letter-spacing:.24em;text-transform:uppercase;color:var(--muted)
+}
+.st-main{
+  font-size:30px;font-weight:900;letter-spacing:.08em;
+  text-transform:uppercase;line-height:1;color:var(--text)
+}
+.st-next{font-family:'DM Mono',monospace;font-size:11.5px;color:var(--muted);letter-spacing:.03em}
+.st-next .t{color:var(--teal);font-weight:500}
+.st-next .d{color:var(--amber)}
+
+/* ── GRID ── */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;flex:1;align-content:stretch}
+.card{
+  background:rgba(6,14,28,.88);border:1px solid var(--bdr);
+  border-radius:11px;padding:12px 14px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 8px 24px rgba(0,0,0,.16);
+  backdrop-filter:blur(16px) saturate(1.2);
+  -webkit-backdrop-filter:blur(16px) saturate(1.2);
+  position:relative;overflow:hidden;
+  display:flex;flex-direction:column;justify-content:center
+}
+.card::after{
+  content:'';position:absolute;inset:0 0 auto 0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent)
+}
+/* Semantic danger levels */
+.card.safe{
+  background:linear-gradient(rgba(6,14,28,.84),rgba(6,14,28,.84)),rgba(34,197,94,.20);
+  border-color:rgba(74,222,128,.34)
+}
+.card.caution{
+  background:linear-gradient(rgba(6,14,28,.84),rgba(6,14,28,.84)),rgba(234,179,8,.20);
+  border-color:rgba(253,224,71,.34)
+}
+.card.danger{
+  background:linear-gradient(rgba(6,14,28,.84),rgba(6,14,28,.84)),rgba(239,68,68,.22);
+  border-color:rgba(248,113,113,.36)
+}
+.card.info{
+  background:linear-gradient(rgba(6,14,28,.84),rgba(6,14,28,.84)),rgba(15,184,168,.18);
+  border-color:rgba(45,212,191,.32)
+}
+
+/* Danger dot indicator */
+.cl{
+  font-family:'DM Mono',monospace;font-size:10px;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+  margin-bottom:5px;display:flex;align-items:center;gap:5px
+}
+.cl::before{
+  content:'';display:inline-block;
+  width:5px;height:5px;border-radius:50%;flex-shrink:0
+}
+.card.safe    .cl::before{background:#22c55e;box-shadow:0 0 5px rgba(34,197,94,.7)}
+.card.caution .cl::before{background:#eab308;box-shadow:0 0 5px rgba(234,179,8,.7)}
+.card.danger  .cl::before{background:#ef4444;box-shadow:0 0 5px rgba(239,68,68,.7)}
+.card.info    .cl::before{background:var(--teal);box-shadow:0 0 5px rgba(15,184,168,.5)}
+.card:not(.safe):not(.caution):not(.danger):not(.info) .cl::before{background:var(--muted);opacity:.4}
+
+.cv{font-size:32px;font-weight:700;letter-spacing:.01em;line-height:1.15;color:var(--text)}
+.card.safe    .cv{color:#4ade80}
+.card.caution .cv{color:#fde047}
+.card.danger  .cv{color:#f87171}
+.card.info    .cv{color:var(--teal)}
+.cv small{font-size:14px;font-weight:400;color:var(--muted)}
+.cv.walk-time{font-size:26px;line-height:1.05;white-space:nowrap}
+.cv.walk-time small{font-size:13px}
+
+/* ── FOOTER ── */
+.foot{
+  text-align:center;margin-top:5px;
+  font-family:'DM Mono',monospace;font-size:7.5px;
+  letter-spacing:.15em;color:rgba(78,110,136,.4);text-transform:uppercase
+}
+</style>
+</head>
+<body>
+<div id="wxbg" class="storm">
+  <div class="wc wc1"></div>
+  <div class="wc wc2"></div>
+  <div class="wc wc3"></div>
+  <div class="wc wc4"></div>
+  <div class="wrain"></div>
+  <div class="wlightning"></div>
+  <div class="wsun"></div>
+</div>
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="hdr">
+    <div>
+      <div class="loc-name">Myrtle Beach</div>
+      <div class="loc-sub" data-i18n="loc-sub">S.C. · 04:06 AM</div>
+    </div>
+    <div class="wx">
+      <span class="wx-icon">⛈️</span>
+      <span class="wx-temp" data-i18n="val-wx-temp">75 °F</span>
+      <div class="wx-sep"></div>
+      <button class="wx-lang" id="lang-btn">🌐 <span id="lang-label">EN</span></button>
+    </div>
+  </div>
+
+  <!-- DIAL -->
+  <div class="dial-wrap">
+    <svg class="dial" viewBox="0 0 360 360" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="gBezel" cx="50%" cy="36%" r="64%">
+          <stop offset="0%"   stop-color="#182e4d"/>
+          <stop offset="100%" stop-color="#07101e"/>
+        </radialGradient>
+        <radialGradient id="gFace" cx="50%" cy="36%" r="64%">
+          <stop offset="0%"   stop-color="#0d1f3a"/>
+          <stop offset="65%"  stop-color="#081424"/>
+          <stop offset="100%" stop-color="#050c17"/>
+        </radialGradient>
+        <!-- Water body gradient: deep teal at bottom, lighter at surface -->
+        <linearGradient id="gWater" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stop-color="rgba(15,184,168,.18)"/>
+          <stop offset="100%" stop-color="rgba(8,110,130,.36)"/>
+        </linearGradient>
+        <!-- Clip everything to the circular face -->
+        <clipPath id="faceClip">
+          <circle cx="180" cy="180" r="139"/>
+        </clipPath>
+        <filter id="ft" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="fa" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <!-- Left half CCW top→left→bottom — letters face inward (rightward) -->
+        <path id="aHi" d="M 180,22 A 158,158 0 0,0 180,338"/>
+        <!-- Right half CCW bottom→right→top — letters face inward (leftward) -->
+        <path id="aLo" d="M 180,338 A 158,158 0 0,0 180,22"/>
+      </defs>
+
+      <!-- Bezel -->
+      <circle cx="180" cy="180" r="158" fill="url(#gBezel)" stroke="rgba(255,255,255,.05)" stroke-width=".75"/>
+      <circle cx="180" cy="180" r="144" fill="none" stroke="rgba(15,184,168,.12)" stroke-width=".5"/>
+
+      <!-- Bezel arc labels — centered on full half-circles -->
+      <text font-family="'DM Mono',monospace" font-size="10" fill="rgba(100,145,175,.75)"
+            letter-spacing="1.8" text-anchor="middle">
+        <textPath id="tp-hi" href="#aHi" startOffset="50%">HOURS TO HIGH TIDE</textPath>
+      </text>
+      <text font-family="'DM Mono',monospace" font-size="10" fill="rgba(100,145,175,.75)"
+            letter-spacing="1.8" text-anchor="middle">
+        <textPath id="tp-lo" href="#aLo" startOffset="50%">HOURS TO LOW TIDE</textPath>
+      </text>
+
+      <!-- SUFFER / WALK in bezel band -->
+      <text x="180" y="29" dominant-baseline="central"
+            font-family="'Barlow Condensed',sans-serif" font-weight="900"
+            font-size="17" fill="#fb923c" text-anchor="middle"
+            letter-spacing="8" filter="url(#fa)">SUFFER</text>
+      <text x="180" y="331" dominant-baseline="central"
+            font-family="'Barlow Condensed',sans-serif" font-weight="900"
+            font-size="17" fill="#0fb8a8" text-anchor="middle"
+            letter-spacing="11" filter="url(#ft)">WALK</text>
+
+      <!-- Face background -->
+      <circle cx="180" cy="180" r="140" fill="url(#gFace)"/>
+
+      <!--
+        TIDE LEVEL FILL
+        Water level = 4.95 ft. Myrtle Beach tidal range ≈ 0–6 ft.
+        4.95 / 6 ≈ 82% full.
+        Face top y=40, bottom y=320, height=280.
+        Water surface y = 40 + 280*(1-0.82) = 40 + 50 = 90
+      -->
+
+      <!-- Static water body -->
+      <rect x="41" y="90" width="278" height="230"
+            fill="url(#gWater)" clip-path="url(#faceClip)"/>
+
+      <!-- Wave layer 1 — slow -->
+      <g clip-path="url(#faceClip)">
+        <path class="wave1"
+          d="M -180,90 Q -135,83 -90,90 Q -45,97 0,90 Q 45,83 90,90 Q 135,97 180,90 Q 225,83 270,90 Q 315,97 360,90 Q 405,83 450,90 Q 495,97 540,90 L 540,320 L -180,320 Z"
+          fill="rgba(15,184,168,.13)"/>
+      </g>
+
+      <!-- Wave layer 2 — fast, offset phase -->
+      <g clip-path="url(#faceClip)">
+        <path class="wave2"
+          d="M -270,92 Q -225,86 -180,92 Q -135,98 -90,92 Q -45,86 0,92 Q 45,98 90,92 Q 135,86 180,92 Q 225,98 270,92 Q 315,86 360,92 Q 405,98 450,92 Q 495,86 540,92 L 540,320 L -270,320 Z"
+          fill="rgba(15,184,168,.09)"/>
+      </g>
+
+      <!-- Subtle surface highlight line -->
+      <line x1="41" y1="90" x2="319" y2="90"
+            stroke="rgba(15,220,200,.25)" stroke-width=".75"
+            clip-path="url(#faceClip)"/>
+
+      <!-- Face border ring -->
+      <circle cx="180" cy="180" r="140" fill="none" stroke="rgba(15,184,168,.2)" stroke-width=".75"/>
+
+      <!-- Ticks + numbers injected by JS -->
+      <g id="ticks"/>
+      <g id="nums"
+         font-family="'Barlow Condensed',sans-serif" font-weight="700" font-size="19"
+         text-anchor="middle" dominant-baseline="central"/>
+
+      <!-- Needle -->
+      <g class="ng">
+        <!-- drop shadow -->
+        <line x1="181" y1="193" x2="181" y2="68"
+              stroke="rgba(0,0,0,.45)" stroke-width="4" stroke-linecap="round"/>
+        <!-- counterweight tail -->
+        <line x1="180" y1="192" x2="174" y2="215"
+              stroke="var(--amber)" stroke-width="2.5" stroke-linecap="round" opacity=".45"/>
+        <!-- shaft -->
+        <line x1="180" y1="192" x2="180" y2="75"
+              stroke="var(--amber)" stroke-width="2" stroke-linecap="round"/>
+        <!-- arrowhead -->
+        <polygon points="180,67 175,79 185,79" fill="var(--amber)" filter="url(#fa)"/>
+      </g>
+
+      <!-- Pivot -->
+      <circle cx="180" cy="180" r="9"   fill="#06101e" stroke="rgba(15,184,168,.5)" stroke-width="1.5"/>
+      <circle cx="180" cy="180" r="4.5" fill="#0fb8a8"/>
+      <circle cx="180" cy="180" r="2"   fill="#d8e8f2"/>
+    </svg>
+  </div>
+
+  <!-- STATUS -->
+  <div class="status">
+    <span class="st-ey" data-i18n="st-ey">Current condition</span>
+    <span class="st-main" data-i18n="st-main">Falling Tide</span>
+    <span class="st-next">
+      <span data-i18n="next-low">Next low</span>
+      <span class="t">09:12 AM</span> ·
+      <span data-i18n="in-word">in</span>
+      <span class="d">5 h 12 m</span>
+    </span>
+  </div>
+
+  <!-- DATA GRID -->
+  <div class="grid">
+    <div class="card info">
+      <div class="cl" data-i18n="walk-window">Walk Window</div>
+      <div class="cv walk-time">08:12 – 10:42<small> AM</small></div>
+    </div>
+    <div class="card safe">
+      <div class="cl" data-i18n="uv-index">UV Index</div>
+      <div class="cv">0.0<small data-i18n="low-val"> · low</small></div>
+    </div>
+    <div class="card safe">
+      <div class="cl" data-i18n="water-temp">Water Temp</div>
+      <div class="cv"><span data-i18n="val-water-temp">79°F</span><small> · 04:00</small></div>
+    </div>
+    <div class="card caution">
+      <div class="cl" data-i18n="wind">Wind</div>
+      <div class="cv"><span data-i18n="val-wind">S 10–15</span><small data-i18n="unit-wind"> mph</small></div>
+    </div>
+    <div class="card safe">
+      <div class="cl" data-i18n="water-level">Water Level</div>
+      <div class="cv"><span data-i18n="val-water-level">4.95</span><small data-i18n="unit-water-level"> ft</small></div>
+    </div>
+    <div class="card caution">
+      <div class="cl" data-i18n="surf-height">Surf Height</div>
+      <div class="cv"><span data-i18n="val-surf-height">2–3</span><small data-i18n="unit-surf-height"> ft</small></div>
+    </div>
+  </div>
+
+  <div class="foot">NOAA · 04:00 AM</div>
+
+</div>
+<script>
+(function(){
+  /* ── Translations ── */
+  const T = {
+    en: {
+      'loc-sub':      'S.C. · 04:06 AM',
+      'st-ey':        'Current condition',
+      'st-main':      'Falling Tide',
+      'next-low':     'Next low',
+      'in-word':      'in',
+      'walk-window':  'Walk Window',
+      'uv-index':     'UV Index',
+      'low-val':      ' · low',
+      'water-temp':   'Water Temp',
+      'wind':         'Wind',
+      'water-level':  'Water Level',
+      'surf-height':  'Surf Height',
+      'bezel-hi':     'HOURS TO HIGH TIDE',
+      'bezel-lo':     'HOURS TO LOW TIDE',
+      'val-wx-temp':  '75 °F',
+      'val-water-temp':'79°F',
+      'val-wind':     'S 10–15',
+      'unit-wind':    ' mph',
+      'val-water-level':'4.95',
+      'unit-water-level':' ft',
+      'val-surf-height':'2–3',
+      'unit-surf-height':' ft',
+    },
+    ru: {
+      'loc-sub':      'Ю. Каролина · 04:06',
+      'st-ey':        'Текущее состояние',
+      'st-main':      'Спад прилива',
+      'next-low':     'Следующий отлив',
+      'in-word':      'через',
+      'walk-window':  'Время прогулки',
+      'uv-index':     'УФ индекс',
+      'low-val':      ' · низкий',
+      'water-temp':   'Темп. воды',
+      'wind':         'Ветер',
+      'water-level':  'Уровень воды',
+      'surf-height':  'Высота волн',
+      'bezel-hi':     'ЧАСОВ ДО ПРИЛИВА',
+      'bezel-lo':     'ЧАСОВ ДО ОТЛИВА',
+      'val-wx-temp':  '24 °C',
+      'val-water-temp':'26°C',
+      'val-wind':     'Ю 16–24',
+      'unit-wind':    ' км/ч',
+      'val-water-level':'1.5',
+      'unit-water-level':' м',
+      'val-surf-height':'0.6–0.9',
+      'unit-surf-height':' м',
+    },
+    ua: {
+      'loc-sub':      'Пд. Кароліна · 04:06',
+      'st-ey':        'Поточний стан',
+      'st-main':      'Спад припливу',
+      'next-low':     'Наступний відлив',
+      'in-word':      'через',
+      'walk-window':  'Час прогулянки',
+      'uv-index':     'УФ індекс',
+      'low-val':      ' · низький',
+      'water-temp':   'Темп. води',
+      'wind':         'Вітер',
+      'water-level':  'Рівень води',
+      'surf-height':  'Висота хвиль',
+      'bezel-hi':     'ГОДИН ДО ПРИПЛИВУ',
+      'bezel-lo':     'ГОДИН ДО ВІДПЛИВУ',
+      'val-wx-temp':  '24 °C',
+      'val-water-temp':'26°C',
+      'val-wind':     'Пд 16–24',
+      'unit-wind':    ' км/год',
+      'val-water-level':'1.5',
+      'unit-water-level':' м',
+      'val-surf-height':'0.6–0.9',
+      'unit-surf-height':' м',
+    },
+    es: {
+      'loc-sub':      'Carolina del Sur · 04:06',
+      'st-ey':        'Estado actual',
+      'st-main':      'Marea bajando',
+      'next-low':     'Próxima bajamar',
+      'in-word':      'en',
+      'walk-window':  'Ventana paseo',
+      'uv-index':     'Índice UV',
+      'low-val':      ' · bajo',
+      'water-temp':   'Temp. agua',
+      'wind':         'Viento',
+      'water-level':  'Nivel agua',
+      'surf-height':  'Altura olas',
+      'bezel-hi':     'HORAS A PLEAMAR',
+      'bezel-lo':     'HORAS A BAJAMAR',
+      'val-wx-temp':  '24 °C',
+      'val-water-temp':'26°C',
+      'val-wind':     'S 16–24',
+      'unit-wind':    ' km/h',
+      'val-water-level':'1.5',
+      'unit-water-level':' m',
+      'val-surf-height':'0.6–0.9',
+      'unit-surf-height':' m',
+    },
+  };
+
+  function applyLang(lang) {
+    const d = T[lang] || T.en;
+    document.documentElement.lang = lang === 'ua' ? 'uk' : lang;
+    // HTML elements
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.dataset.i18n;
+      if (d[key] != null) el.textContent = d[key];
+    });
+    // SVG textPath elements
+    const tpHi = document.getElementById('tp-hi');
+    const tpLo = document.getElementById('tp-lo');
+    if (tpHi) tpHi.textContent = d['bezel-hi'];
+    if (tpLo) tpLo.textContent = d['bezel-lo'];
+  }
+
+  /* ── Tick marks ── */
+  const X=180,Y=180,NR=105;
+  const tg=document.getElementById('ticks');
+  for(let i=0;i<60;i++){
+    const a=i/60*2*Math.PI-Math.PI/2,maj=i%5===0;
+    const r1=138,r2=maj?121:129;
+    const l=document.createElementNS('http://www.w3.org/2000/svg','line');
+    l.setAttribute('x1',(X+r1*Math.cos(a)).toFixed(2));
+    l.setAttribute('y1',(Y+r1*Math.sin(a)).toFixed(2));
+    l.setAttribute('x2',(X+r2*Math.cos(a)).toFixed(2));
+    l.setAttribute('y2',(Y+r2*Math.sin(a)).toFixed(2));
+    l.setAttribute('stroke',maj?'rgba(112,151,184,.65)':'rgba(112,151,184,.27)');
+    l.setAttribute('stroke-width',maj?'1.8':'1');
+    l.setAttribute('stroke-linecap','round');
+    tg.appendChild(l);
+  }
+
+  /* ── Numbers ── */
+  const ng=document.getElementById('nums');
+  // Left orange — hours to HIGH TIDE: 1@330° … 5@210°
+  [330,300,270,240,210].forEach((d,i)=>{
+    const r=(d-90)*Math.PI/180;
+    const el=document.createElementNS('http://www.w3.org/2000/svg','text');
+    el.setAttribute('x',(X+NR*Math.cos(r)).toFixed(1));
+    el.setAttribute('y',(Y+NR*Math.sin(r)).toFixed(1));
+    el.setAttribute('fill','#fb923c');el.setAttribute('opacity','.88');
+    el.textContent=String(i+1);ng.appendChild(el);
+  });
+  // Right sky — hours to LOW TIDE: 5@30° … 1@150°
+  [30,60,90,120,150].forEach((d,i)=>{
+    const r=(d-90)*Math.PI/180;
+    const el=document.createElementNS('http://www.w3.org/2000/svg','text');
+    el.setAttribute('x',(X+NR*Math.cos(r)).toFixed(1));
+    el.setAttribute('y',(Y+NR*Math.sin(r)).toFixed(1));
+    el.setAttribute('fill','#7dd3fc');el.setAttribute('opacity','.88');
+    el.textContent=String(5-i);ng.appendChild(el);
+  });
+
+  /* ── Language cycler (globe tap) ── */
+  const langSeq=['en','ru','ua','es'],langCode={en:'EN',ru:'RU',ua:'UA',es:'ES'};
+  let langIdx=0,currentLang='en';
+  document.getElementById('lang-btn').addEventListener('click',()=>{
+    langIdx=(langIdx+1)%langSeq.length;
+    currentLang=langSeq[langIdx];
+    const lbl=document.getElementById('lang-label');
+    lbl.classList.remove('la');void lbl.offsetWidth;lbl.classList.add('la');
+    lbl.textContent=langCode[currentLang];
+    applyLang(currentLang);
+  });
+})();
+</script>
+</body>
+</html>
