@@ -108,15 +108,7 @@ body.motion-on #score-beacon{animation:scorePulse 1.8s ease-in-out infinite}
 body.motion-on .wave1{animation:wave1 4s linear infinite}
 body.motion-on .wave2{animation:wave2 2.8s linear infinite}
 
-@keyframes settle{
-  0%  {transform:rotate(-85deg);opacity:0}
-  25% {opacity:1}
-  72% {transform:rotate(36deg)}
-  84% {transform:rotate(25deg)}
-  93% {transform:rotate(31deg)}
-  100%{transform:rotate(30deg)}
-}
-.ng{transform-origin:180px 180px;animation:settle 2.2s cubic-bezier(.22,.68,0,1.2) .5s both}
+.ng{opacity:0}
 
 @keyframes up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .hdr     {animation:up .5s ease  0s   both}
@@ -191,6 +183,8 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
 .metric-item.danger .metric-value{color:#f87171}
 .metric-value small{font-size:15px;font-weight:650;color:rgba(216,232,242,.6)}
 .metric-value.wind-value{display:flex;align-items:baseline;gap:7px;white-space:nowrap}
+.metric-value.compact-value{white-space:nowrap}
+.metric-value.surf-value{font-size:clamp(23px,6.6vw,30px)}
 .wind-meta{font-size:14px;font-weight:700;color:rgba(216,232,242,.58)}
 .wind-meta::before{content:'· '}
 
@@ -198,7 +192,8 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
 .cl{
   font-size:10.8px;font-weight:650;
   letter-spacing:.055em;text-transform:uppercase;color:#6f8da5;
-  margin-bottom:5px;display:flex;align-items:center;gap:5px
+  margin-bottom:5px;display:flex;align-items:center;gap:5px;
+  max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
 }
 .cl::before{
   content:'';display:inline-block;
@@ -393,18 +388,15 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
     <div class="score-hero">
       <div class="score-top">
         <div class="score-main caution" id="score-card">
-          <div class="cl" data-i18n="tide-walk-score">Score</div>
+          <div class="cl" data-i18n="tide-walk-score">Current walk rating</div>
           <div class="score-number"><span id="score-value">61</span><small>/100</small></div>
         </div>
         <span class="score-badge" id="score-label">fair</span>
       </div>
       <div class="walk-block">
         <div>
-          <div class="cl info" data-i18n="walk-window">Walk Time</div>
+          <div class="cl info" data-i18n="walk-window">Best walk window</div>
           <div id="walk-time-value" class="walk-time" data-i18n="walk-time-value">08:12–10:42 AM</div>
-        </div>
-        <div class="walk-note">
-          <span data-i18n="best-window">Best</span>
         </div>
       </div>
     </div>
@@ -423,7 +415,7 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
       </div>
       <div class="metric-item caution">
         <div class="cl" data-i18n="surf-height">Surf</div>
-        <div class="metric-value"><span data-i18n="val-surf-height">2–3</span><small data-i18n="unit-surf-height"> ft</small></div>
+        <div class="metric-value compact-value surf-value"><span data-i18n="val-surf-height">2–3</span><small data-i18n="unit-surf-height"> ft</small></div>
       </div>
     </div>
   </div>
@@ -448,8 +440,7 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
       'now-until':    'Now until',
       'window-passed':'Window passed',
       'unavailable':  'n/a',
-      'walk-window':  'Walk Time',
-      'best-window':  'Best',
+      'walk-window':  'Best walk window',
       'walk-time-value':'08:12–10:42 AM',
       'uv-index':     'UV',
       'low-val':      ' · low',
@@ -460,7 +451,7 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
       'uv-extreme':   'extreme',
       'water-temp':   'Water',
       'wind':         'Wind',
-      'tide-walk-score':'Score',
+      'tide-walk-score':'Current walk rating',
       'score-excellent':'excellent',
       'score-good':   'good',
       'score-fair':   'fair',
@@ -491,8 +482,7 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
       'now-until':    'Сейчас до',
       'window-passed':'Окно прошло',
       'unavailable':  'н/д',
-      'walk-window':  'Окно',
-      'best-window':  'Лучшее',
+      'walk-window':  'Лучшее окно для прогулки',
       'walk-time-value':'08:12–10:42',
       'uv-index':     'УФ',
       'low-val':      ' · низкий',
@@ -503,7 +493,7 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
       'uv-extreme':   'экстремальный',
       'water-temp':   'Вода',
       'wind':         'Ветер',
-      'tide-walk-score':'Оценка',
+      'tide-walk-score':'Рейтинг текущей прогулки',
       'score-excellent':'отлично',
       'score-good':   'хорошо',
       'score-fair':   'нормально',
@@ -534,8 +524,7 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
       'now-until':    'Зараз до',
       'window-passed':'Вікно минуло',
       'unavailable':  'н/д',
-      'walk-window':  'Вікно',
-      'best-window':  'Найкраще',
+      'walk-window':  'Найкраще вікно для прогулянки',
       'walk-time-value':'08:12–10:42',
       'uv-index':     'УФ',
       'low-val':      ' · низький',
@@ -546,7 +535,7 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
       'uv-extreme':   'екстремальний',
       'water-temp':   'Вода',
       'wind':         'Вітер',
-      'tide-walk-score':'Оцінка',
+      'tide-walk-score':'Рейтинг поточної прогулянки',
       'score-excellent':'відмінно',
       'score-good':   'добре',
       'score-fair':   'нормально',
@@ -577,8 +566,7 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
       'now-until':    'Ahora hasta',
       'window-passed':'Ventana pasada',
       'unavailable':  'n/d',
-      'walk-window':  'Horario',
-      'best-window':  'Mejor',
+      'walk-window':  'Mejor ventana para caminar',
       'walk-time-value':'08:12–10:42 AM',
       'uv-index':     'UV',
       'low-val':      ' · bajo',
@@ -589,7 +577,7 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
       'uv-extreme':   'extremo',
       'water-temp':   'Agua',
       'wind':         'Viento',
-      'tide-walk-score':'Score',
+      'tide-walk-score':'Rating del paseo actual',
       'score-excellent':'excelente',
       'score-good':   'bueno',
       'score-fair':   'regular',
@@ -633,6 +621,7 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
     weatherState: document.body.dataset.weather || 'storm',
     updatedAt: null,
   };
+  let needleSettled = false;
 
   function isHour12(lang) {
     return lang === 'en' || lang === 'es';
@@ -924,6 +913,36 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
     if (el) el.textContent = value;
   }
 
+  function setNeedleAngle(angle) {
+    const needle = document.getElementById('needle-group');
+    if (!needle) return;
+    const target = angle.toFixed(2);
+    needle.classList.remove('ng');
+    needle.removeAttribute('style');
+    if (needleSettled || window.matchMedia('(prefers-reduced-motion: reduce)').matches || !needle.animate) {
+      needle.setAttribute('transform', `rotate(${target} 180 180)`);
+      needleSettled = true;
+      return;
+    }
+    const overshoot = angle + 7;
+    const undershoot = angle - 3;
+    needle.setAttribute('transform', 'rotate(0 180 180)');
+    needle.animate([
+      { transform: 'rotate(0deg)', opacity: 0 },
+      { transform: `rotate(${Math.min(overshoot, 365).toFixed(2)}deg)`, opacity: 1, offset: 0.72 },
+      { transform: `rotate(${undershoot.toFixed(2)}deg)`, opacity: 1, offset: 0.86 },
+      { transform: `rotate(${(angle + 1.2).toFixed(2)}deg)`, opacity: 1, offset: 0.95 },
+      { transform: `rotate(${target}deg)`, opacity: 1 },
+    ], {
+      duration: 1800,
+      easing: 'cubic-bezier(.22,.72,.18,1)',
+      fill: 'forwards',
+    }).onfinish = () => {
+      needle.setAttribute('transform', `rotate(${target} 180 180)`);
+      needleSettled = true;
+    };
+  }
+
   function setTone(el, score) {
     const card = typeof el === 'string' ? document.querySelector(el) : el;
     if (!card) return;
@@ -987,12 +1006,7 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
       const waterHeight = 320 - waterY;
       const wave1 = `M -180,${waterY} Q -135,${waterY-11} -90,${waterY} Q -45,${waterY+11} 0,${waterY} Q 45,${waterY-11} 90,${waterY} Q 135,${waterY+11} 180,${waterY} Q 225,${waterY-11} 270,${waterY} Q 315,${waterY+11} 360,${waterY} Q 405,${waterY-11} 450,${waterY} Q 495,${waterY+11} 540,${waterY} L 540,320 L -180,320 Z`;
       const wave2 = `M -270,${waterY+2} Q -225,${waterY-8} -180,${waterY+2} Q -135,${waterY+12} -90,${waterY+2} Q -45,${waterY-8} 0,${waterY+2} Q 45,${waterY+12} 90,${waterY+2} Q 135,${waterY-8} 180,${waterY+2} Q 225,${waterY+12} 270,${waterY+2} Q 315,${waterY-8} 360,${waterY+2} Q 405,${waterY+12} 450,${waterY+2} Q 495,${waterY-8} 540,${waterY+2} L 540,320 L -270,320 Z`;
-      const needle = document.getElementById('needle-group');
-      if (needle) {
-        needle.classList.remove('ng');
-        needle.removeAttribute('style');
-        needle.setAttribute('transform', `rotate(${angle.toFixed(2)} 180 180)`);
-      }
+      setNeedleAngle(angle);
       document.getElementById('water-body')?.setAttribute('y', waterY.toFixed(1));
       document.getElementById('water-body')?.setAttribute('height', waterHeight.toFixed(1));
       document.getElementById('wave-1')?.setAttribute('d', wave1);
