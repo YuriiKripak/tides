@@ -111,12 +111,13 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
   0%{transform:translateY(0) scale(.82);opacity:0}
   12%{opacity:.55}
   82%{opacity:.38}
-  100%{transform:translateY(-210px) scale(1.18);opacity:0}
+  100%{transform:translateY(var(--bubble-rise,-160px)) scale(1.18);opacity:0}
 }
-.bubble{opacity:0;transform-box:fill-box;transform-origin:center}
-body.motion-on .bubble{animation:bubbleRise 5.8s ease-in-out infinite}
-.bubble.b2{animation-delay:1.8s;animation-duration:6.4s}
-.bubble.b3{animation-delay:3.4s;animation-duration:5.2s}
+.bubble{opacity:0;transform-box:fill-box;transform-origin:center;will-change:transform,opacity}
+body.motion-on .bubble{
+  animation:bubbleRise var(--bubble-duration,5.8s) ease-in-out infinite;
+  animation-delay:var(--bubble-delay,0s)
+}
 
 .ng{opacity:0}
 
@@ -1015,6 +1016,39 @@ body.motion-on .bubble{animation:bubbleRise 5.8s ease-in-out infinite}
     return `${Math.max(0, Math.round(ft - 0.5))}–${Math.round(ft + 0.5)}`;
   }
 
+  function placeBubble(bubble, waterY) {
+    if (!bubble || waterY == null) return;
+    const faceCenterX = 180;
+    const faceCenterY = 180;
+    const faceRadius = 139;
+    const startY = Math.min(318, Math.max(waterY + 6, 302 + Math.random() * 12));
+    const yOffset = startY - faceCenterY;
+    const halfWidth = Math.max(14, Math.sqrt(Math.max(0, faceRadius * faceRadius - yOffset * yOffset)) - 8);
+    const x = faceCenterX + (Math.random() * 2 - 1) * halfWidth;
+    const rise = Math.max(0, startY - waterY - 2);
+    bubble.setAttribute('cx', x.toFixed(1));
+    bubble.setAttribute('cy', startY.toFixed(1));
+    bubble.style.setProperty('--bubble-rise', `-${rise.toFixed(1)}px`);
+  }
+
+  function setBubbleTiming(bubble, initial = false) {
+    if (!bubble) return;
+    const duration = 5.2 + Math.random() * 2.4;
+    bubble.style.setProperty('--bubble-duration', `${duration.toFixed(2)}s`);
+    if (initial) {
+      bubble.style.setProperty('--bubble-delay', `${(Math.random() * 3.8).toFixed(2)}s`);
+    }
+  }
+
+  function layoutBubbles(waterY) {
+    document.querySelectorAll('.bubble').forEach((bubble, index) => {
+      bubble.dataset.waterY = waterY.toFixed(1);
+      placeBubble(bubble, waterY);
+      setBubbleTiming(bubble, !bubble.dataset.bubbleReady);
+      bubble.dataset.bubbleReady = 'true';
+    });
+  }
+
   function renderLiveData() {
     const d = T[currentLang] || T.en;
     const tide = liveState.tide;
@@ -1045,6 +1079,7 @@ body.motion-on .bubble{animation:bubbleRise 5.8s ease-in-out infinite}
       document.getElementById('wave-2')?.setAttribute('d', wave2);
       document.getElementById('water-line')?.setAttribute('y1', waterY.toFixed(1));
       document.getElementById('water-line')?.setAttribute('y2', waterY.toFixed(1));
+      layoutBubbles(waterY);
     }
     setText('[data-i18n="val-wx-temp"]', formatTemperature(liveState.airTempC, currentLang));
     setText('.wx-icon', weatherIconForState(liveState.weatherState));
@@ -1318,6 +1353,15 @@ body.motion-on .bubble{animation:bubbleRise 5.8s ease-in-out infinite}
     lbl.classList.remove('la');void lbl.offsetWidth;lbl.classList.add('la');
     lbl.textContent=langCode[currentLang];
     applyLang(currentLang);
+  });
+  document.querySelectorAll('.bubble').forEach(bubble => {
+    bubble.addEventListener('animationiteration', () => {
+      const waterY = Number(bubble.dataset.waterY);
+      if (Number.isFinite(waterY)) {
+        placeBubble(bubble, waterY);
+        setBubbleTiming(bubble);
+      }
+    });
   });
 })();
 
