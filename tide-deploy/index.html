@@ -81,81 +81,8 @@ body::before{
 .la{animation:lf .22s ease}
 
 /* ── WEATHER BG ── */
-#wxbg{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
-
-/* Base sky tint — purple for storm, warm for sunny */
-#wxbg::before{
-  content:'';position:absolute;inset:0;
-  opacity:0;transition:opacity 1.5s
-}
-.storm #wxbg::before,#wxbg.storm::before{
-  background:linear-gradient(170deg,rgba(55,35,110,.55) 0%,rgba(20,15,60,.3) 50%,transparent 75%);
-  opacity:1
-}
-.sunny #wxbg::before,#wxbg.sunny::before{
-  background:linear-gradient(170deg,rgba(20,60,120,.45) 0%,rgba(10,40,80,.2) 50%,transparent 75%);
-  opacity:1
-}
-
-/* Cloud blobs — blur reduced for visible shape */
-.wc{position:absolute;border-radius:50%;filter:blur(30px);opacity:0;transition:opacity 1.5s}
-.wc1{width:340px;height:170px;top:-70px;left:-90px;animation:wd1 28s ease-in-out infinite alternate}
-.wc2{width:420px;height:210px;top:-40px;left:20px;animation:wd2 22s ease-in-out infinite alternate}
-.wc3{width:260px;height:150px;top:50px;right:-80px;animation:wd3 17s ease-in-out infinite alternate}
-.wc4{width:200px;height:120px;top:110px;left:0;animation:wd1 34s ease-in-out infinite alternate-reverse}
-@keyframes wd1{from{transform:translate(0,0)}to{transform:translate(65px,12px)}}
-@keyframes wd2{from{transform:translate(-20px,0)}to{transform:translate(45px,10px)}}
-@keyframes wd3{from{transform:translate(0,0)}to{transform:translate(-55px,20px)}}
-.wrain,.wlightning,.wsun{display:none}
-
-/* ── storm ── */
-.storm .wc1{background:radial-gradient(ellipse at 40% 35%,rgba(145,125,220,.95) 0%,rgba(100,85,175,.7) 40%,transparent 70%);opacity:1}
-.storm .wc2{background:radial-gradient(ellipse at 55% 45%,rgba(110,95,195,.9) 0%,rgba(75,62,155,.65) 45%,transparent 70%);opacity:1}
-.storm .wc3{background:radial-gradient(ellipse at 48% 38%,rgba(160,140,230,.85) 0%,rgba(115,98,185,.6) 42%,transparent 70%);opacity:1}
-.storm .wc4{background:radial-gradient(ellipse at 42% 42%,rgba(90,75,165,.8) 0%,rgba(60,50,130,.55) 45%,transparent 70%);opacity:.9}
-.storm .wrain,.storm .wlightning{display:block}
-
-/* Rain — short offset streaks, not continuous stripes */
-.wrain{
-  position:absolute;inset:-120px -80px;
-  transform:rotate(8deg);transform-origin:center
-}
-.wrain::before,.wrain::after{
-  content:'';position:absolute;inset:0;
-  background-image:
-    radial-gradient(ellipse 1px 9px at 50% 50%,rgba(180,220,255,.18) 0 56%,transparent 68%),
-    radial-gradient(ellipse 1px 7px at 50% 50%,rgba(180,220,255,.10) 0 56%,transparent 70%);
-  background-size:18px 52px,31px 84px;
-  background-position:0 0,14px 29px;
-  animation:rf .46s linear infinite
-}
-.wrain::after{
-  opacity:.65;
-  background-size:23px 66px,37px 96px;
-  background-position:7px 21px,24px 47px;
-  animation-duration:.32s;animation-delay:-.12s
-}
-@keyframes rf{from{transform:translate3d(0,-58px,0)}to{transform:translate3d(0,58px,0)}}
-
-/* Lightning — double flash */
-.wlightning{position:absolute;inset:0;animation:lfl 9s ease infinite 2s}
-@keyframes lfl{
-  0%,87%,89.5%,91.5%,100%{opacity:0;background:transparent}
-  88%,90.5%{opacity:1;background:rgba(200,225,255,.1)}
-}
-
-/* ── sunny ── */
-.sunny .wc1{background:radial-gradient(ellipse at 45%,rgba(200,220,255,.25),transparent 65%);opacity:.7}
-.sunny .wc2{background:radial-gradient(ellipse at 55%,rgba(180,205,240,.18),transparent 65%);opacity:.55}
-.sunny .wsun{display:block}
-.wsun{
-  position:absolute;width:260px;height:260px;border-radius:50%;
-  right:-60px;top:-80px;
-  background:
-    radial-gradient(circle,rgba(255,210,60,.55) 0%,rgba(255,165,25,.28) 40%,rgba(255,120,0,.1) 65%,transparent 75%);
-  animation:sunp 7s ease-in-out infinite
-}
-@keyframes sunp{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:1;transform:scale(1.07)}}
+#wxcanvas{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+#wxbg{display:none}
 
 /* ── DIAL ── */
 .dial-wrap{display:flex;justify-content:center;padding:2px 0}
@@ -193,21 +120,22 @@ body::before{
   display:flex;flex-direction:column;align-items:center;gap:1px
 }
 .st-ey{
-  font-family:'DM Mono',monospace;font-size:8.5px;
-  letter-spacing:.24em;text-transform:uppercase;color:var(--muted)
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif;
+  font-size:9.8px;font-weight:600;
+  letter-spacing:.18em;text-transform:uppercase;color:#66849d
 }
 .st-main{
   font-size:30px;font-weight:900;letter-spacing:.08em;
   text-transform:uppercase;line-height:1;color:var(--text)
 }
-.st-next{font-family:'DM Mono',monospace;font-size:11.5px;color:var(--muted);letter-spacing:.03em}
+.st-next{font-family:'DM Mono',monospace;font-size:13.5px;color:var(--muted);letter-spacing:.02em}
 .st-next .t{color:var(--teal);font-weight:500}
 .st-next .d{color:var(--amber)}
 
 /* ── GRID ── */
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;flex:1;align-content:stretch}
 .card{
-  background:rgba(6,14,28,.88);border:1px solid var(--bdr);
+  background:rgba(6,14,28,.91);border:1px solid var(--bdr);
   border-radius:11px;padding:12px 14px;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 8px 24px rgba(0,0,0,.16);
   backdrop-filter:blur(16px) saturate(1.2);
@@ -221,26 +149,27 @@ body::before{
 }
 /* Semantic danger levels */
 .card.safe{
-  background:linear-gradient(rgba(6,14,28,.84),rgba(6,14,28,.84)),rgba(34,197,94,.20);
+  background:linear-gradient(rgba(6,14,28,.89),rgba(6,14,28,.89)),rgba(34,197,94,.20);
   border-color:rgba(74,222,128,.34)
 }
 .card.caution{
-  background:linear-gradient(rgba(6,14,28,.84),rgba(6,14,28,.84)),rgba(234,179,8,.20);
+  background:linear-gradient(rgba(6,14,28,.89),rgba(6,14,28,.89)),rgba(234,179,8,.20);
   border-color:rgba(253,224,71,.34)
 }
 .card.danger{
-  background:linear-gradient(rgba(6,14,28,.84),rgba(6,14,28,.84)),rgba(239,68,68,.22);
+  background:linear-gradient(rgba(6,14,28,.89),rgba(6,14,28,.89)),rgba(239,68,68,.22);
   border-color:rgba(248,113,113,.36)
 }
 .card.info{
-  background:linear-gradient(rgba(6,14,28,.84),rgba(6,14,28,.84)),rgba(15,184,168,.18);
+  background:linear-gradient(rgba(6,14,28,.89),rgba(6,14,28,.89)),rgba(15,184,168,.18);
   border-color:rgba(45,212,191,.32)
 }
 
 /* Danger dot indicator */
 .cl{
-  font-family:'DM Mono',monospace;font-size:10px;
-  letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif;
+  font-size:10.8px;font-weight:650;
+  letter-spacing:.10em;text-transform:uppercase;color:#6f8da5;
   margin-bottom:5px;display:flex;align-items:center;gap:5px
 }
 .cl::before{
@@ -253,14 +182,14 @@ body::before{
 .card.info    .cl::before{background:var(--teal);box-shadow:0 0 5px rgba(15,184,168,.5)}
 .card:not(.safe):not(.caution):not(.danger):not(.info) .cl::before{background:var(--muted);opacity:.4}
 
-.cv{font-size:32px;font-weight:700;letter-spacing:.01em;line-height:1.15;color:var(--text)}
+.cv{font-size:32px;font-weight:750;letter-spacing:0;line-height:1.15;color:var(--text)}
 .card.safe    .cv{color:#4ade80}
 .card.caution .cv{color:#fde047}
 .card.danger  .cv{color:#f87171}
 .card.info    .cv{color:var(--teal)}
-.cv small{font-size:14px;font-weight:400;color:var(--muted)}
-.cv.walk-time{font-size:26px;line-height:1.05;white-space:nowrap}
-.cv.walk-time small{font-size:13px}
+.cv small{font-size:14px;font-weight:500;color:#6a8499}
+.cv.walk-time{font-size:27px;line-height:1.05;white-space:nowrap}
+.cv.walk-time small{font-size:13.5px}
 
 /* ── FOOTER ── */
 .foot{
@@ -271,15 +200,8 @@ body::before{
 </style>
 </head>
 <body>
-<div id="wxbg" class="storm">
-  <div class="wc wc1"></div>
-  <div class="wc wc2"></div>
-  <div class="wc wc3"></div>
-  <div class="wc wc4"></div>
-  <div class="wrain"></div>
-  <div class="wlightning"></div>
-  <div class="wsun"></div>
-</div>
+<canvas id="wxcanvas"></canvas>
+<div id="wxbg" class="storm" aria-hidden="true"></div>
 <div class="app">
 
   <!-- HEADER -->
@@ -337,12 +259,12 @@ body::before{
       <circle cx="180" cy="180" r="144" fill="none" stroke="rgba(15,184,168,.12)" stroke-width=".5"/>
 
       <!-- Bezel arc labels — centered on full half-circles -->
-      <text font-family="'DM Mono',monospace" font-size="10" fill="rgba(100,145,175,.75)"
-            letter-spacing="1.8" text-anchor="middle">
+      <text font-family="'DM Mono',monospace" font-size="13" fill="rgba(145,185,215,.9)"
+            letter-spacing="1.05" text-anchor="middle">
         <textPath id="tp-hi" href="#aHi" startOffset="50%">HOURS TO HIGH TIDE</textPath>
       </text>
-      <text font-family="'DM Mono',monospace" font-size="10" fill="rgba(100,145,175,.75)"
-            letter-spacing="1.8" text-anchor="middle">
+      <text font-family="'DM Mono',monospace" font-size="13" fill="rgba(145,185,215,.9)"
+            letter-spacing="1.05" text-anchor="middle">
         <textPath id="tp-lo" href="#aLo" startOffset="50%">HOURS TO LOW TIDE</textPath>
       </text>
 
@@ -630,6 +552,196 @@ body::before{
     lbl.textContent=langCode[currentLang];
     applyLang(currentLang);
   });
+})();
+
+/* ── Canvas Weather Renderer ── */
+(function(){
+  const canvas=document.getElementById('wxcanvas');
+  const wxbg=document.getElementById('wxbg');
+  if(!canvas||!wxbg) return;
+  const ctx=canvas.getContext('2d');
+  let W=0,H=0,particles=[],wxState='storm',driftT=0,lastTime=0,lightningAlpha=0,nextLightning=5;
+
+  const ICONS={
+    storm:'⛈️',rain:'🌧️',cloudy:'☁️','partly-cloudy':'⛅',
+    sunny:'☀️','clear-night':'🌙'
+  };
+  const SKIES={
+    storm:[['#16082e',0],['#0b051c',.55],['#040210',1]],
+    rain:[['#141830',0],['#0a0d1e',.55],['#04060e',1]],
+    cloudy:[['#20294a',0],['#101528',.56],['#050710',1]],
+    'partly-cloudy':[['#0c1d48',0],['#071225',.6],['#03080e',1]],
+    sunny:[['#102b73',0],['#071840',.5],['#030a18',1]],
+    'clear-night':[['#03050e',0],['#020408',.6],['#010204',1]]
+  };
+  const CLOUDS={
+    storm:[
+      {x:-.05,y:-.08,w:.75,h:.38,tc:'rgba(95,72,170,.9)',bc:'rgba(60,42,130,.7)',a:.88},
+      {x:.28,y:-.12,w:.85,h:.42,tc:'rgba(80,60,155,.85)',bc:'rgba(48,34,118,.65)',a:.82},
+      {x:-.1,y:.14,w:.65,h:.3,tc:'rgba(110,85,185,.8)',bc:'rgba(68,50,142,.6)',a:.75},
+      {x:.45,y:.1,w:.7,h:.32,tc:'rgba(72,55,148,.75)',bc:'rgba(45,32,112,.55)',a:.7}
+    ],
+    rain:[
+      {x:-.08,y:-.06,w:.7,h:.35,tc:'rgba(65,70,125,.88)',bc:'rgba(42,46,100,.68)',a:.85},
+      {x:.3,y:-.1,w:.78,h:.38,tc:'rgba(55,60,112,.82)',bc:'rgba(35,40,90,.62)',a:.78},
+      {x:-.12,y:.16,w:.6,h:.28,tc:'rgba(75,80,138,.75)',bc:'rgba(50,55,108,.56)',a:.7}
+    ],
+    cloudy:[
+      {x:-.16,y:-.12,w:.88,h:.44,tc:'rgba(88,98,155,.96)',bc:'rgba(52,60,118,.78)',a:.96},
+      {x:.22,y:-.16,w:.96,h:.46,tc:'rgba(72,82,140,.92)',bc:'rgba(42,50,108,.72)',a:.92},
+      {x:-.14,y:.16,w:.74,h:.34,tc:'rgba(98,108,165,.86)',bc:'rgba(60,68,128,.66)',a:.84},
+      {x:.38,y:.12,w:.78,h:.36,tc:'rgba(78,88,145,.82)',bc:'rgba(46,54,112,.62)',a:.8}
+    ],
+    'partly-cloudy':[
+      {x:-.15,y:-.18,w:.55,h:.28,tc:'rgba(100,112,175,.7)',bc:'rgba(70,82,148,.52)',a:.72},
+      {x:.55,y:-.22,w:.6,h:.3,tc:'rgba(90,102,165,.65)',bc:'rgba(62,74,140,.48)',a:.65}
+    ],
+    sunny:[
+      {x:.35,y:-.28,w:.45,h:.22,tc:'rgba(120,140,200,.45)',bc:'rgba(85,105,170,.32)',a:.4}
+    ],
+    'clear-night':[]
+  };
+
+  function resize(){
+    const dpr=Math.min(window.devicePixelRatio||1,2);
+    W=canvas.width=Math.floor(window.innerWidth*dpr);
+    H=canvas.height=Math.floor(window.innerHeight*dpr);
+    canvas.style.width=window.innerWidth+'px';
+    canvas.style.height=window.innerHeight+'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    W=window.innerWidth;H=window.innerHeight;
+    initParticles(wxState);
+  }
+
+  function rng(seed){
+    const x=Math.sin(seed*9301+49297)*233280;
+    return x-Math.floor(x);
+  }
+  const STARS=Array.from({length:150},(_,i)=>({
+    x:rng(i*3+1),y:rng(i*2+2)*.65,r:rng(i*5+3)*1.6+.4,op:rng(i*7+4)*.55+.3
+  }));
+
+  function initParticles(state){
+    particles=[];
+    const n=state==='storm'?260:state==='rain'?155:0;
+    for(let i=0;i<n;i++){
+      particles.push({
+        x:Math.random()*W,y:Math.random()*H,
+        speed:Math.random()*6+(state==='storm'?10:6),
+        len:Math.random()*12+7,
+        op:Math.random()*.18+(state==='storm'?.1:.08)
+      });
+    }
+  }
+
+  function setWxState(state){
+    if(!SKIES[state]) state='storm';
+    wxState=state;
+    wxbg.className=state;
+    document.body.dataset.weather=state;
+    const icon=document.querySelector('.wx-icon');
+    if(icon) icon.textContent=ICONS[state];
+    initParticles(state);
+  }
+  window.setWeatherState=setWxState;
+
+  function drawCloud(x,y,w,h,topColor,botColor,alpha){
+    ctx.save();
+    ctx.globalAlpha=alpha;
+    ctx.shadowBlur=18;
+    ctx.shadowColor=topColor;
+    [
+      {dx:.12,dy:.55,r:.38},{dx:.3,dy:.38,r:.44},{dx:.5,dy:.32,r:.5},
+      {dx:.7,dy:.4,r:.42},{dx:.87,dy:.55,r:.36}
+    ].forEach(b=>{
+      const bx=x+b.dx*w,by=y+b.dy*h,br=b.r*h;
+      const g=ctx.createRadialGradient(bx,by-br*.2,br*.1,bx,by,br);
+      g.addColorStop(0,topColor);g.addColorStop(.6,botColor);g.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.beginPath();ctx.arc(bx,by,br,0,Math.PI*2);ctx.fillStyle=g;ctx.fill();
+    });
+    ctx.shadowBlur=0;
+    const baseY=y+h*.65,baseH=h*.35,bg=ctx.createLinearGradient(0,baseY,0,baseY+baseH);
+    bg.addColorStop(0,botColor);bg.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.beginPath();ctx.rect(x+w*.08,baseY,w*.84,baseH);ctx.fillStyle=bg;ctx.fill();
+    ctx.restore();
+  }
+
+  function render(ts){
+    const dt=Math.min((ts-lastTime)/1000,.05)||0;
+    lastTime=ts;driftT+=dt;
+    ctx.clearRect(0,0,W,H);
+
+    const skyGrad=ctx.createLinearGradient(0,0,0,H);
+    SKIES[wxState].forEach(([c,p])=>skyGrad.addColorStop(p,c));
+    ctx.fillStyle=skyGrad;ctx.fillRect(0,0,W,H);
+
+    if(wxState==='sunny'||wxState==='partly-cloudy'){
+      const sx=W*.9,sy=H*-.04,sr=Math.min(W,H)*(wxState==='sunny'?.58:.4);
+      const sg=ctx.createRadialGradient(sx,sy,0,sx,sy,sr);
+      sg.addColorStop(0,'rgba(255,205,70,.58)');
+      sg.addColorStop(.25,'rgba(255,155,30,.3)');
+      sg.addColorStop(.55,'rgba(255,95,0,.12)');
+      sg.addColorStop(1,'rgba(255,50,0,0)');
+      ctx.beginPath();ctx.arc(sx,sy,sr,0,Math.PI*2);ctx.fillStyle=sg;ctx.fill();
+      if(wxState==='sunny'){
+        ctx.save();ctx.translate(sx,sy);
+        for(let i=0;i<16;i++){
+          const a=i/16*Math.PI*2;
+          ctx.beginPath();ctx.moveTo(Math.cos(a)*sr*.06,Math.sin(a)*sr*.06);
+          ctx.lineTo(Math.cos(a)*sr*.95,Math.sin(a)*sr*.95);
+          ctx.strokeStyle='rgba(255,190,50,.06)';ctx.lineWidth=22;ctx.stroke();
+        }
+        ctx.restore();
+      }
+    }
+
+    if(wxState==='clear-night'){
+      STARS.forEach(s=>{
+        const twinkle=.7+.3*Math.sin(driftT*1.8+s.r*7);
+        ctx.beginPath();ctx.arc(s.x*W,s.y*H,s.r,0,Math.PI*2);
+        ctx.fillStyle=`rgba(255,255,255,${s.op*twinkle})`;ctx.fill();
+      });
+      const mx=W*.72,my=H*.09,mr=26,mglow=ctx.createRadialGradient(mx,my,mr*.8,mx,my,mr*4);
+      mglow.addColorStop(0,'rgba(200,215,255,.14)');mglow.addColorStop(1,'rgba(200,215,255,0)');
+      ctx.beginPath();ctx.arc(mx,my,mr*4,0,Math.PI*2);ctx.fillStyle=mglow;ctx.fill();
+      ctx.beginPath();ctx.arc(mx,my,mr,0,Math.PI*2);ctx.fillStyle='rgba(232,238,255,.92)';ctx.fill();
+      ctx.beginPath();ctx.arc(mx+mr*.28,my-mr*.08,mr*.82,0,Math.PI*2);ctx.fillStyle=SKIES['clear-night'][0][0];ctx.fill();
+    }
+
+    (CLOUDS[wxState]||[]).forEach((c,i)=>{
+      const drift=Math.sin(driftT*.12+i*1.5)*.025;
+      drawCloud((c.x+drift)*W,c.y*H,c.w*W,c.h*H,c.tc,c.bc,c.a);
+    });
+
+    if(particles.length){
+      ctx.save();
+      particles.forEach(p=>{
+        p.y+=p.speed;p.x-=p.speed*.12;
+        if(p.y>H){p.y=-p.len;p.x=Math.random()*W}
+        ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p.x-p.len*.12,p.y+p.len);
+        ctx.strokeStyle=`rgba(175,210,250,${p.op})`;
+        ctx.lineWidth=wxState==='storm'?1.15:.9;ctx.stroke();
+      });
+      ctx.restore();
+    }
+
+    if(wxState==='storm'){
+      nextLightning-=dt;
+      if(nextLightning<=0){lightningAlpha=.14;nextLightning=6+Math.random()*11}
+      if(lightningAlpha>0){
+        ctx.fillStyle=`rgba(200,220,255,${lightningAlpha})`;
+        ctx.fillRect(0,0,W,H);
+        lightningAlpha=Math.max(0,lightningAlpha-dt*2.2);
+      }
+    }
+    requestAnimationFrame(render);
+  }
+
+  resize();
+  window.addEventListener('resize',resize);
+  setWxState(new URLSearchParams(location.search).get('weather')||wxbg.className||'storm');
+  new MutationObserver(()=>setWxState(wxbg.className||'storm')).observe(wxbg,{attributes:true,attributeFilter:['class']});
+  requestAnimationFrame(render);
 })();
 </script>
 </body>
