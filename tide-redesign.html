@@ -621,6 +621,7 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
     weatherState: document.body.dataset.weather || 'storm',
     updatedAt: null,
   };
+  let needleIntroStarted = false;
   let needleSettled = false;
   let needleAnimationFrame = 0;
 
@@ -920,12 +921,15 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
     const target = angle.toFixed(2);
     needle.classList.remove('ng');
     needle.removeAttribute('style');
+    if (needleIntroStarted && !needleSettled) return;
     if (needleSettled || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       needle.setAttribute('transform', `rotate(${target} 180 180)`);
+      needleIntroStarted = true;
       needleSettled = true;
       return;
     }
     if (needleAnimationFrame) cancelAnimationFrame(needleAnimationFrame);
+    needleIntroStarted = true;
     const duration = 1500;
     const start = performance.now();
     const easeOutBack = t => {
