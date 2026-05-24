@@ -177,19 +177,19 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
 .card.primary{
   box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 10px 28px rgba(0,0,0,.2)
 }
-.card.primary .cv{font-size:35px;font-weight:800}
-.card.primary .cv.walk-time{font-size:24px;font-weight:800}
+.card.primary .cv{font-size:clamp(30px,8.6vw,35px);font-weight:800}
+.card.primary .cv.walk-time{font-size:clamp(21px,6.2vw,24px);font-weight:800}
 .card.factor{
   background:rgba(6,14,28,.84);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 6px 18px rgba(0,0,0,.13)
 }
-.card.factor .cv{font-size:29px;font-weight:720}
+.card.factor .cv{font-size:clamp(25px,7.3vw,29px);font-weight:720}
 .card.factor .cl{color:#66849d}
 
 /* Danger dot indicator */
 .cl{
   font-size:10.8px;font-weight:650;
-  letter-spacing:.09em;text-transform:uppercase;color:#6f8da5;
+  letter-spacing:.055em;text-transform:uppercase;color:#6f8da5;
   margin-bottom:5px;display:flex;align-items:center;gap:5px
 }
 .cl::before{
@@ -203,6 +203,9 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
 .card:not(.safe):not(.caution):not(.danger):not(.info) .cl::before{background:var(--muted);opacity:.4}
 
 .cv{font-size:32px;font-weight:750;letter-spacing:0;line-height:1.15;color:var(--text)}
+.cv.wind-value{display:grid;grid-template-columns:auto 1fr;column-gap:7px;align-items:baseline}
+.wind-dir{min-width:1.2em}
+.wind-speed{white-space:nowrap}
 .card.safe    .cv{color:#4ade80}
 .card.caution .cv{color:#fde047}
 .card.danger  .cv{color:#f87171}
@@ -393,27 +396,27 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
   <!-- DATA GRID -->
   <div class="grid">
     <div class="card primary caution" id="score-card">
-      <div class="cl" data-i18n="tide-walk-score">Tide Walk Score</div>
+      <div class="cl" data-i18n="tide-walk-score">Score</div>
       <div class="cv"><span id="score-value">61</span><small> · <span id="score-label">fair</span></small></div>
     </div>
     <div class="card primary info">
-      <div class="cl" data-i18n="walk-window">Walk Window</div>
-      <div class="cv walk-time">08:12 10:42</div>
+      <div class="cl" data-i18n="walk-window">Walk Time</div>
+      <div class="cv walk-time">08:12–10:42</div>
     </div>
     <div class="card factor safe">
-      <div class="cl" data-i18n="water-temp">Water Temp</div>
+      <div class="cl" data-i18n="water-temp">Water</div>
       <div class="cv"><span data-i18n="val-water-temp">79°F</span></div>
     </div>
     <div class="card factor caution">
       <div class="cl" data-i18n="wind">Wind</div>
-      <div class="cv"><span data-i18n="val-wind">S · 10–15</span><small data-i18n="unit-wind"> mph</small></div>
+      <div class="cv wind-value"><span class="wind-dir" data-i18n="val-wind-dir">S</span><span class="wind-speed"><span data-i18n="val-wind-speed">10–15</span><small data-i18n="unit-wind"> mph</small></span></div>
     </div>
     <div class="card factor safe">
-      <div class="cl" data-i18n="uv-index">UV Index</div>
+      <div class="cl" data-i18n="uv-index">UV</div>
       <div class="cv">0.0<small data-i18n="low-val"> · low</small></div>
     </div>
     <div class="card factor caution">
-      <div class="cl" data-i18n="surf-height">Surf Height</div>
+      <div class="cl" data-i18n="surf-height">Surf</div>
       <div class="cv"><span data-i18n="val-surf-height">2–3</span><small data-i18n="unit-surf-height"> ft</small></div>
     </div>
   </div>
@@ -431,23 +434,24 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
       'st-main':      'Falling Tide',
       'next-low':     'Next low',
       'in-word':      'in',
-      'walk-window':  'Walk Window',
-      'uv-index':     'UV Index',
+      'walk-window':  'Walk Time',
+      'uv-index':     'UV',
       'low-val':      ' · low',
-      'water-temp':   'Water Temp',
+      'water-temp':   'Water',
       'wind':         'Wind',
-      'tide-walk-score':'Tide Walk Score',
+      'tide-walk-score':'Score',
       'score-excellent':'excellent',
       'score-good':   'good',
       'score-fair':   'fair',
       'score-poor':   'poor',
       'score-avoid':  'avoid',
-      'surf-height':  'Surf Height',
+      'surf-height':  'Surf',
       'bezel-hi':     'HOURS TO HIGH TIDE',
       'bezel-lo':     'HOURS TO LOW TIDE',
       'val-wx-temp':  '75 °F',
       'val-water-temp':'79°F',
-      'val-wind':     'S · 10–15',
+      'val-wind-dir': 'S',
+      'val-wind-speed':'10–15',
       'unit-wind':    ' mph',
       'val-surf-height':'2–3',
       'unit-surf-height':' ft',
@@ -459,23 +463,24 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
       'st-main':      'Спад прилива',
       'next-low':     'Следующий отлив',
       'in-word':      'через',
-      'walk-window':  'Время прогулки',
-      'uv-index':     'УФ индекс',
+      'walk-window':  'Окно',
+      'uv-index':     'УФ',
       'low-val':      ' · низкий',
-      'water-temp':   'Темп. воды',
+      'water-temp':   'Вода',
       'wind':         'Ветер',
-      'tide-walk-score':'Оценка прогулки',
+      'tide-walk-score':'Оценка',
       'score-excellent':'отлично',
       'score-good':   'хорошо',
       'score-fair':   'нормально',
       'score-poor':   'плохо',
       'score-avoid':  'не стоит',
-      'surf-height':  'Высота волн',
+      'surf-height':  'Волны',
       'bezel-hi':     'ЧАСОВ ДО ПРИЛИВА',
       'bezel-lo':     'ЧАСОВ ДО ОТЛИВА',
       'val-wx-temp':  '24 °C',
       'val-water-temp':'26°C',
-      'val-wind':     'Ю · 16–24',
+      'val-wind-dir': 'Ю',
+      'val-wind-speed':'16–24',
       'unit-wind':    ' км/ч',
       'val-surf-height':'0.6–0.9',
       'unit-surf-height':' м',
@@ -487,23 +492,24 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
       'st-main':      'Спад припливу',
       'next-low':     'Наступний відлив',
       'in-word':      'через',
-      'walk-window':  'Час прогулянки',
-      'uv-index':     'УФ індекс',
+      'walk-window':  'Вікно',
+      'uv-index':     'УФ',
       'low-val':      ' · низький',
-      'water-temp':   'Темп. води',
+      'water-temp':   'Вода',
       'wind':         'Вітер',
-      'tide-walk-score':'Оцінка прогулянки',
+      'tide-walk-score':'Оцінка',
       'score-excellent':'відмінно',
       'score-good':   'добре',
       'score-fair':   'нормально',
       'score-poor':   'погано',
       'score-avoid':  'не варто',
-      'surf-height':  'Висота хвиль',
+      'surf-height':  'Хвилі',
       'bezel-hi':     'ГОДИН ДО ПРИПЛИВУ',
       'bezel-lo':     'ГОДИН ДО ВІДПЛИВУ',
       'val-wx-temp':  '24 °C',
       'val-water-temp':'26°C',
-      'val-wind':     'Пд · 16–24',
+      'val-wind-dir': 'Пд',
+      'val-wind-speed':'16–24',
       'unit-wind':    ' км/год',
       'val-surf-height':'0.6–0.9',
       'unit-surf-height':' м',
@@ -515,23 +521,24 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
       'st-main':      'Marea bajando',
       'next-low':     'Próxima bajamar',
       'in-word':      'en',
-      'walk-window':  'Ventana paseo',
-      'uv-index':     'Índice UV',
+      'walk-window':  'Horario',
+      'uv-index':     'UV',
       'low-val':      ' · bajo',
-      'water-temp':   'Temp. agua',
+      'water-temp':   'Agua',
       'wind':         'Viento',
-      'tide-walk-score':'Puntaje paseo',
+      'tide-walk-score':'Score',
       'score-excellent':'excelente',
       'score-good':   'bueno',
       'score-fair':   'regular',
       'score-poor':   'malo',
       'score-avoid':  'evitar',
-      'surf-height':  'Altura olas',
+      'surf-height':  'Oleaje',
       'bezel-hi':     'HORAS A PLEAMAR',
       'bezel-lo':     'HORAS A BAJAMAR',
       'val-wx-temp':  '24 °C',
       'val-water-temp':'26°C',
-      'val-wind':     'S · 16–24',
+      'val-wind-dir': 'S',
+      'val-wind-speed':'16–24',
       'unit-wind':    ' km/h',
       'val-surf-height':'0.6–0.9',
       'unit-surf-height':' m',
