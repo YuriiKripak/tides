@@ -18,9 +18,13 @@ const requiredSnippets = [
   "timeZone: 'America/New_York'",
   "'tide-walk-score':'Tide Walk Score'",
   "id=\"score-beacon\"",
+  "id=\"motion-btn\"",
+  "function renderStatic()",
+  "function startMotion()",
+  "function stopMotion()",
+  "let motionEnabled=false",
   "const perf={",
   "const targetFps=isMobile?24:30",
-  "document.addEventListener('visibilitychange'",
   "--glass:rgba(8,18,36,.88)",
 ];
 

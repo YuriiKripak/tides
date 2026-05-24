@@ -63,7 +63,15 @@ body::before{
   padding:3px 7px;border-radius:12px;cursor:pointer;
   display:flex;align-items:center;gap:4px;transition:background .15s
 }
-.wx-lang:active{background:rgba(15,184,168,.18)}
+.wx-motion{
+  width:25px;height:25px;border:0;border-radius:50%;
+  display:grid;place-items:center;cursor:pointer;
+  font:inherit;font-size:10px;font-weight:800;color:#7f9bb2;
+  background:rgba(255,255,255,.04);
+  transition:background .15s,color .15s,box-shadow .15s
+}
+.wx-motion[aria-pressed="true"]{color:var(--teal);background:rgba(15,184,168,.16);box-shadow:0 0 10px rgba(15,184,168,.22)}
+.wx-lang:active,.wx-motion:active{background:rgba(15,184,168,.18)}
 @keyframes lf{
   0%{opacity:1;transform:translateY(0)}
   45%{opacity:0;transform:translateY(-5px)}
@@ -209,6 +217,8 @@ body::before{
     <div class="wx">
       <span class="wx-icon">⛈️</span>
       <span class="wx-temp" data-i18n="val-wx-temp">75 °F</span>
+      <div class="wx-sep"></div>
+      <button class="wx-motion" id="motion-btn" type="button" aria-label="Start weather animation" aria-pressed="false">▶</button>
       <div class="wx-sep"></div>
       <button class="wx-lang" id="lang-btn">🌐 <span id="lang-label">EN</span></button>
     </div>
@@ -634,7 +644,9 @@ body::before{
 (function(){
   const canvas = document.getElementById('wxcanvas');
   const ctx = canvas.getContext('2d');
-  let W, H;
+  const motionBtn = document.getElementById('motion-btn');
+  let W, H, rafId = 0;
+  let motionEnabled = false;
 
   function resize(){
     const isMobile = window.matchMedia('(max-width: 640px)').matches;
@@ -647,6 +659,7 @@ body::before{
     W = window.innerWidth;
     H = window.innerHeight;
     initParticles(wxState);
+    renderStatic();
   }
   // ── Rain particles ──
   let particles = [];
@@ -775,6 +788,7 @@ body::before{
     document.body.dataset.weather = s;
     initParticles(s);
     if(window.updateTideWalkScore) window.updateTideWalkScore(s);
+    renderStatic();
   }
 
   // Watch #wxbg className changes
@@ -785,17 +799,8 @@ body::before{
       .observe(wxbg, {attributes:true, attributeFilter:['class']});
   }
 
-  // ── Main render loop ──
-  function render(ts){
-    const isMobile = window.matchMedia('(max-width: 640px)').matches;
-    const targetFps = isMobile ? 24 : 30;
-    const perf = { frameMs: 1000 / targetFps };
-    if(document.hidden){ requestAnimationFrame(render); return; }
-    if(lastTime && ts - lastTime < perf.frameMs){ requestAnimationFrame(render); return; }
-    const dt = Math.min((ts - lastTime) / 1000, 0.05);
-    lastTime = ts;
-    driftT += dt;
-
+  function renderScene(dt, { animated = false } = {}){
+    if(animated) driftT += dt;
     ctx.clearRect(0, 0, W, H);
 
     // Sky
@@ -834,9 +839,9 @@ body::before{
     }
 
     // Moon + stars (clear-night)
-    if(wxState === 'clear-night' && !window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    if(wxState === 'clear-night'){
       STARS.forEach(s => {
-        const twinkle = 0.7 + 0.3 * Math.sin(driftT * 1.8 + s.r * 7);
+        const twinkle = animated ? 0.7 + 0.3 * Math.sin(driftT * 1.8 + s.r * 7) : 0.84;
         ctx.beginPath();
         ctx.arc(s.x * W, s.y * H, s.r, 0, Math.PI*2);
         ctx.fillStyle = `rgba(255,255,255,${s.op * twinkle})`;
@@ -857,7 +862,7 @@ body::before{
     // Clouds (with gentle drift)
     const clouds = CLOUDS[wxState] || [];
     clouds.forEach((c, i) => {
-      const drift = Math.sin(driftT * 0.12 + i * 1.5) * 0.025;
+      const drift = animated ? Math.sin(driftT * 0.12 + i * 1.5) * 0.025 : 0;
       drawCloud(
         (c.x + drift) * W,
         c.y * H,
@@ -871,8 +876,10 @@ body::before{
     if(particles.length > 0){
       ctx.save();
       particles.forEach(p => {
-        p.y += p.speed;
-        p.x -= p.speed * 0.12;
+        if(animated){
+          p.y += p.speed;
+          p.x -= p.speed * 0.12;
+        }
         if(p.y > H){ p.y = -p.len; p.x = Math.random() * W; }
         ctx.beginPath();
         ctx.moveTo(p.x, p.y);
@@ -885,7 +892,7 @@ body::before{
     }
 
     // Lightning flash (storm only)
-    if(wxState === 'storm' && !window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    if(animated && wxState === 'storm' && !window.matchMedia('(prefers-reduced-motion: reduce)').matches){
       nextLightning -= dt;
       if(nextLightning <= 0){
         lightningAlpha = 0.18;
@@ -903,13 +910,57 @@ body::before{
       }
     }
 
-    requestAnimationFrame(render);
   }
+
+  function renderStatic(){
+    renderScene(0, { animated: false });
+  }
+
+  function render(ts){
+    const isMobile = window.matchMedia('(max-width: 640px)').matches;
+    const targetFps = isMobile ? 24 : 30;
+    const perf = { frameMs: 1000 / targetFps };
+    if(!motionEnabled || document.hidden){ rafId = 0; return; }
+    if(lastTime && ts - lastTime < perf.frameMs){ rafId = requestAnimationFrame(render); return; }
+    const dt = Math.min((ts - lastTime) / 1000, 0.05) || 0;
+    lastTime = ts;
+    renderScene(dt, { animated: true });
+    rafId = requestAnimationFrame(render);
+  }
+
+  function updateMotionButton(){
+    if(!motionBtn) return;
+    motionBtn.textContent = motionEnabled ? 'Ⅱ' : '▶';
+    motionBtn.setAttribute('aria-pressed', String(motionEnabled));
+    motionBtn.setAttribute('aria-label', motionEnabled ? 'Stop weather animation' : 'Start weather animation');
+  }
+
+  function startMotion(){
+    if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    motionEnabled = true;
+    lastTime = 0;
+    updateMotionButton();
+    if(!rafId) rafId = requestAnimationFrame(render);
+  }
+
+  function stopMotion(){
+    motionEnabled = false;
+    updateMotionButton();
+    if(rafId){
+      cancelAnimationFrame(rafId);
+      rafId = 0;
+    }
+    renderStatic();
+  }
+  window.startMotion = startMotion;
+  window.stopMotion = stopMotion;
+
   resize();
   window.addEventListener('resize', resize);
   initParticles(wxState);
-  document.addEventListener('visibilitychange',()=>{ lastTime = 0; });
-  requestAnimationFrame(render);
+  document.addEventListener('visibilitychange',()=>{ lastTime = 0; if(!document.hidden && motionEnabled) startMotion(); });
+  if(motionBtn) motionBtn.addEventListener('click',()=>motionEnabled ? stopMotion() : startMotion());
+  stopMotion();
 })();
 </script>
 </body>
