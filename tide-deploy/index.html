@@ -91,6 +91,11 @@ body::before{
   filter:drop-shadow(0 6px 36px rgba(15,184,168,.09))
 }
 #score-beacon{transition:fill .25s ease,opacity .25s ease}
+@keyframes scorePulse{
+  0%,100%{opacity:.82;stroke-width:.8}
+  50%{opacity:1;stroke-width:2.2}
+}
+#score-beacon{animation:scorePulse 1.8s ease-in-out infinite}
 
 /* Wave animations */
 @keyframes wave1{from{transform:translateX(0)}to{transform:translateX(180px)}}
@@ -189,8 +194,8 @@ body::before{
 .card.danger  .cv{color:#f87171}
 .card.info    .cv{color:var(--teal)}
 .cv small{font-size:14px;font-weight:500;color:#6a8499}
-.cv.walk-time{font-size:27px;line-height:1.05;white-space:nowrap}
-.cv.walk-time small{font-size:13.5px}
+.cv.walk-time{font-size:23px;line-height:1.05;white-space:nowrap}
+.cv.walk-time small{font-size:12px}
 
 /* ── FOOTER ── */
 .foot{
@@ -221,7 +226,7 @@ body::before{
 
   <!-- DIAL -->
   <div class="dial-wrap">
-    <svg class="dial" viewBox="-8 0 376 360" xmlns="http://www.w3.org/2000/svg">
+    <svg class="dial" viewBox="-10 0 380 360" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <radialGradient id="gBezel" cx="50%" cy="36%" r="64%">
           <stop offset="0%"   stop-color="#182e4d"/>
@@ -254,14 +259,14 @@ body::before{
           <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
         </filter>
         <!-- Left half CCW top→left→bottom — letters face inward (rightward) -->
-        <path id="aHi" d="M 180,14 A 166,166 0 0,0 180,346"/>
+        <path id="aHi" d="M 180,22 A 158,158 0 0,0 180,338"/>
         <!-- Right half CCW bottom→right→top — letters face inward (leftward) -->
-        <path id="aLo" d="M 180,346 A 166,166 0 0,0 180,14"/>
+        <path id="aLo" d="M 180,338 A 158,158 0 0,0 180,22"/>
       </defs>
 
       <!-- Bezel -->
-      <circle cx="180" cy="180" r="166" fill="url(#gBezel)" stroke="rgba(255,255,255,.05)" stroke-width=".75"/>
-      <circle cx="180" cy="180" r="150" fill="none" stroke="rgba(15,184,168,.12)" stroke-width=".5"/>
+      <circle cx="180" cy="180" r="170" fill="url(#gBezel)" stroke="rgba(255,255,255,.05)" stroke-width=".75"/>
+      <circle cx="180" cy="180" r="146" fill="none" stroke="rgba(15,184,168,.12)" stroke-width=".5"/>
 
       <!-- Bezel arc labels — centered on full half-circles -->
       <text font-family="-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',system-ui,sans-serif"
@@ -284,7 +289,7 @@ body::before{
             font-family="'Barlow Condensed',sans-serif" font-weight="900"
             font-size="17" fill="#0fb8a8" text-anchor="middle"
             letter-spacing="11" filter="url(#ft)">WALK</text>
-      <circle id="score-beacon" cx="180" cy="50" r="6" fill="#eab308" stroke="rgba(255,255,255,.55)" stroke-width=".8" filter="url(#scoreGlow)"/>
+      <circle id="score-beacon" cx="180" cy="54" r="7" fill="#eab308" stroke="rgba(255,255,255,.55)" stroke-width=".8" filter="url(#scoreGlow)"/>
 
       <!-- Face background -->
       <circle cx="180" cy="180" r="140" fill="url(#gFace)"/>
@@ -365,13 +370,13 @@ body::before{
 
   <!-- DATA GRID -->
   <div class="grid">
+    <div class="card caution" id="score-card">
+      <div class="cl" data-i18n="tide-walk-score">Tide Walk Score</div>
+      <div class="cv"><span id="score-value">61</span><small> · <span id="score-label">fair</span></small></div>
+    </div>
     <div class="card info">
       <div class="cl" data-i18n="walk-window">Walk Window</div>
       <div class="cv walk-time">08:12 – 10:42<small> AM</small></div>
-    </div>
-    <div class="card safe">
-      <div class="cl" data-i18n="uv-index">UV Index</div>
-      <div class="cv">0.0<small data-i18n="low-val"> · low</small></div>
     </div>
     <div class="card safe">
       <div class="cl" data-i18n="water-temp">Water Temp</div>
@@ -381,9 +386,9 @@ body::before{
       <div class="cl" data-i18n="wind">Wind</div>
       <div class="cv"><span data-i18n="val-wind">S 10–15</span><small data-i18n="unit-wind"> mph</small></div>
     </div>
-    <div class="card caution" id="score-card">
-      <div class="cl" data-i18n="tide-walk-score">Tide Walk Score</div>
-      <div class="cv"><span id="score-value">61</span><small> · <span id="score-label">fair</span></small></div>
+    <div class="card safe">
+      <div class="cl" data-i18n="uv-index">UV Index</div>
+      <div class="cv">0.0<small data-i18n="low-val"> · low</small></div>
     </div>
     <div class="card caution">
       <div class="cl" data-i18n="surf-height">Surf Height</div>
