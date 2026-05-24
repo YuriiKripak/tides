@@ -13,7 +13,14 @@ for (const file of requiredFiles) {
 const html = await readFile("tide-deploy/index.html", "utf8");
 const requiredSnippets = [
   "const langSeq=['en','ru','ua','es']",
-  "'loc-sub':      'Carolina del Sur · 04:06'",
+  "'loc-label':    'Hora local'",
+  "new Intl.DateTimeFormat",
+  "timeZone: 'America/New_York'",
+  "'tide-walk-score':'Tide Walk Score'",
+  "id=\"score-beacon\"",
+  "const perf={",
+  "const targetFps=isMobile?24:30",
+  "document.addEventListener('visibilitychange'",
   "--glass:rgba(8,18,36,.88)",
 ];
 

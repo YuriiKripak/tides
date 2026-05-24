@@ -1,21 +1,44 @@
-# Myrtle Beach Tide Widget
+# Tide Walk Score
 
-A compact tide, beach-condition, and weather widget for Myrtle Beach.
+A compact tide-walking score, beach-condition, and weather widget for Myrtle Beach.
 
 The current deployable site is in `tide-deploy/`. It is deployed as Cloudflare Workers static assets with no backend and no private API keys.
 
 ## Why This Exists
 
-Most weather widgets show temperature, wind, and rain, but they do not make tide timing obvious. That misses a practical problem for visitors in Myrtle Beach: beach walking is much better around low tide.
+Most weather widgets show temperature, wind, and rain, but they do not answer a more practical beach question: is now a good time to walk near the water?
 
 At low tide, the exposed sand is firmer, easier to walk on, and gives people more room to move without disturbing others who are relaxing closer to the dunes. At high tide, the beach can be narrower and the loose sand makes longer walks less comfortable.
 
-This widget is built for that specific use case: helping tourists, visitors, and locals quickly decide when beach conditions are best for a walk. It combines tide context with weather and beach-condition details in one compact screen.
+Tide Walk Score is built for that specific use case: helping tourists, visitors, and locals quickly decide when beach conditions are best for a walk. It combines tide timing, current weather, wind, surf, UV, water temperature, and tide comfort context into one compact screen.
+
+## Tide Walk Score
+
+The Tide Walk Score is a 0-100 rating for current beach-walking conditions:
+
+- 85-100: excellent
+- 70-84: good
+- 50-69: fair
+- 30-49: poor
+- 0-29: avoid
+
+The score is tide-first, but not tide-only. Rain, storms, wind, surf height, UV index, water temperature, and tide level context can all raise or lower the current rating. Dangerous weather can cap the score even when the tide timing is otherwise good.
+
+## Color System
+
+Cards and the small beacon on the tide dial use the same condition language:
+
+- Green: the factor supports a beach walk.
+- Yellow: the factor is usable but not ideal.
+- Orange/red: the factor makes walking less comfortable or less safe.
+- Teal: key timing information, such as the best walk window.
 
 ## Features
 
-- Tide clock with walk/suffer context
+- Tide clock with walk/suffer context and score beacon
+- Tide Walk Score from 0 to 100
 - Low-tide walking window
+- Weather-aware score penalties for rain and storms
 - Weather background states
 - English, Russian, Ukrainian, and Spanish labels
 - Imperial units for English

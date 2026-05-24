@@ -1,7 +1,7 @@
 {
-  "name": "Tide · Myrtle Beach",
-  "short_name": "Tide",
-  "description": "Real-time tide tracker for Myrtle Beach",
+  "name": "Tide Walk Score",
+  "short_name": "Tide Walk",
+  "description": "Beach-walking score and tide conditions for Myrtle Beach",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#05091a",
