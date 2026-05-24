@@ -438,13 +438,13 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
     en: {
       'loc-label':    'Local time',
       'st-ey':        'Current condition',
-      'st-main':      'Falling Tide',
+      'st-main':      'High / Low Tide',
       'next-low':     'Next low',
       'next-high':    'Next high',
       'next-tide-time':'09:12 AM',
       'in-word':      'in',
-      'rising-tide':  'Rising Tide',
-      'falling-tide': 'Falling Tide',
+      'rising-tide':  'High / Low Tide',
+      'falling-tide': 'High / Low Tide',
       'now-until':    'Now until',
       'window-passed':'Window passed',
       'unavailable':  'n/a',
@@ -453,6 +453,11 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
       'walk-time-value':'08:12–10:42 AM',
       'uv-index':     'UV',
       'low-val':      ' · low',
+      'uv-low':       'low',
+      'uv-moderate':  'moderate',
+      'uv-high':      'high',
+      'uv-very-high': 'very high',
+      'uv-extreme':   'extreme',
       'water-temp':   'Water',
       'wind':         'Wind',
       'tide-walk-score':'Score',
@@ -476,13 +481,13 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
     ru: {
       'loc-label':    'Местное время',
       'st-ey':        'Текущее состояние',
-      'st-main':      'Спад прилива',
+      'st-main':      'Прилив / отлив',
       'next-low':     'Следующий отлив',
       'next-high':    'Следующий прилив',
       'next-tide-time':'09:12',
       'in-word':      'через',
-      'rising-tide':  'Рост прилива',
-      'falling-tide': 'Спад прилива',
+      'rising-tide':  'Прилив / отлив',
+      'falling-tide': 'Прилив / отлив',
       'now-until':    'Сейчас до',
       'window-passed':'Окно прошло',
       'unavailable':  'н/д',
@@ -491,6 +496,11 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
       'walk-time-value':'08:12–10:42',
       'uv-index':     'УФ',
       'low-val':      ' · низкий',
+      'uv-low':       'низкий',
+      'uv-moderate':  'средний',
+      'uv-high':      'высокий',
+      'uv-very-high': 'очень высокий',
+      'uv-extreme':   'экстремальный',
       'water-temp':   'Вода',
       'wind':         'Ветер',
       'tide-walk-score':'Оценка',
@@ -514,13 +524,13 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
     ua: {
       'loc-label':    'Місцевий час',
       'st-ey':        'Поточний стан',
-      'st-main':      'Спад припливу',
+      'st-main':      'Приплив / відплив',
       'next-low':     'Наступний відлив',
       'next-high':    'Наступний приплив',
       'next-tide-time':'09:12',
       'in-word':      'через',
-      'rising-tide':  'Зростання припливу',
-      'falling-tide': 'Спад припливу',
+      'rising-tide':  'Приплив / відплив',
+      'falling-tide': 'Приплив / відплив',
       'now-until':    'Зараз до',
       'window-passed':'Вікно минуло',
       'unavailable':  'н/д',
@@ -529,6 +539,11 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
       'walk-time-value':'08:12–10:42',
       'uv-index':     'УФ',
       'low-val':      ' · низький',
+      'uv-low':       'низький',
+      'uv-moderate':  'помірний',
+      'uv-high':      'високий',
+      'uv-very-high': 'дуже високий',
+      'uv-extreme':   'екстремальний',
       'water-temp':   'Вода',
       'wind':         'Вітер',
       'tide-walk-score':'Оцінка',
@@ -552,13 +567,13 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
     es: {
       'loc-label':    'Hora local',
       'st-ey':        'Estado actual',
-      'st-main':      'Marea bajando',
+      'st-main':      'Marea alta / baja',
       'next-low':     'Próxima bajamar',
       'next-high':    'Próxima pleamar',
       'next-tide-time':'09:12 AM',
       'in-word':      'en',
-      'rising-tide':  'Marea subiendo',
-      'falling-tide': 'Marea bajando',
+      'rising-tide':  'Marea alta / baja',
+      'falling-tide': 'Marea alta / baja',
       'now-until':    'Ahora hasta',
       'window-passed':'Ventana pasada',
       'unavailable':  'n/d',
@@ -567,6 +582,11 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
       'walk-time-value':'08:12–10:42 AM',
       'uv-index':     'UV',
       'low-val':      ' · bajo',
+      'uv-low':       'bajo',
+      'uv-moderate':  'moderado',
+      'uv-high':      'alto',
+      'uv-very-high': 'muy alto',
+      'uv-extreme':   'extremo',
       'water-temp':   'Agua',
       'wind':         'Viento',
       'tide-walk-score':'Score',
@@ -603,6 +623,8 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
     windMps: null,
     windDirectionDeg: null,
     windGustMps: null,
+    windDirText: '',
+    windSource: '',
     airTempC: null,
     uv: null,
     waveHeightM: null,
@@ -708,6 +730,19 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
     return labels[Math.round(((deg % 360) / 45)) % 8];
   }
 
+  function degreesFromDirection(value) {
+    const map = { N:0, NNE:22.5, NE:45, ENE:67.5, E:90, ESE:112.5, SE:135, SSE:157.5, S:180, SSW:202.5, SW:225, WSW:247.5, W:270, WNW:292.5, NW:315, NNW:337.5 };
+    return map[String(value || '').trim().toUpperCase()] ?? null;
+  }
+
+  function parseWindMph(value) {
+    const numbers = String(value || '').match(/\d+(?:\.\d+)?/g)?.map(Number) || [];
+    if (!numbers.length) return null;
+    const low = numbers[0];
+    const high = numbers.length > 1 ? numbers[1] : null;
+    return { lowMps: low * 0.44704, highMps: high != null ? high * 0.44704 : null };
+  }
+
   function weatherCodeToState(code, fallback = '') {
     const text = String(fallback).toLowerCase();
     if ([95,96,99].includes(code) || /thunder|storm|гроза|tormenta/.test(text)) return 'storm';
@@ -780,6 +815,15 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
     if (uv < 6) return 72;
     if (uv < 8) return 50;
     return 25;
+  }
+
+  function uvBand(uv) {
+    if (uv == null) return { key:'unavailable', score:75 };
+    if (uv < 3) return { key:'uv-low', score:96 };
+    if (uv < 6) return { key:'uv-moderate', score:72 };
+    if (uv < 8) return { key:'uv-high', score:50 };
+    if (uv < 11) return { key:'uv-very-high', score:25 };
+    return { key:'uv-extreme', score:10 };
   }
 
   function scoreBand(score) {
@@ -889,7 +933,12 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
       const waterHeight = 320 - waterY;
       const wave1 = `M -180,${waterY} Q -135,${waterY-11} -90,${waterY} Q -45,${waterY+11} 0,${waterY} Q 45,${waterY-11} 90,${waterY} Q 135,${waterY+11} 180,${waterY} Q 225,${waterY-11} 270,${waterY} Q 315,${waterY+11} 360,${waterY} Q 405,${waterY-11} 450,${waterY} Q 495,${waterY+11} 540,${waterY} L 540,320 L -180,320 Z`;
       const wave2 = `M -270,${waterY+2} Q -225,${waterY-8} -180,${waterY+2} Q -135,${waterY+12} -90,${waterY+2} Q -45,${waterY-8} 0,${waterY+2} Q 45,${waterY+12} 90,${waterY+2} Q 135,${waterY-8} 180,${waterY+2} Q 225,${waterY+12} 270,${waterY+2} Q 315,${waterY-8} 360,${waterY+2} Q 405,${waterY+12} 450,${waterY+2} Q 495,${waterY-8} 540,${waterY+2} L 540,320 L -270,320 Z`;
-      document.getElementById('needle-group')?.setAttribute('style', `transform:rotate(${angle}deg);transform-origin:180px 180px`);
+      const needle = document.getElementById('needle-group');
+      if (needle) {
+        needle.classList.remove('ng');
+        needle.removeAttribute('style');
+        needle.setAttribute('transform', `rotate(${angle.toFixed(2)} 180 180)`);
+      }
       document.getElementById('water-body')?.setAttribute('y', waterY.toFixed(1));
       document.getElementById('water-body')?.setAttribute('height', waterHeight.toFixed(1));
       document.getElementById('wave-1')?.setAttribute('d', wave1);
@@ -900,13 +949,15 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
     setText('[data-i18n="val-wx-temp"]', formatTemperature(liveState.airTempC, currentLang));
     setText('[data-i18n="val-water-temp"]', formatTemperature(liveState.waterTempC, currentLang));
     setText('[data-i18n="val-wind-speed"]', formatWindSpeed(liveState.windMps, liveState.windGustMps, currentLang));
-    setText('[data-i18n="val-wind-dir"]', directionFromDegrees(liveState.windDirectionDeg, currentLang));
+    setText('[data-i18n="val-wind-dir"]', directionFromDegrees(liveState.windDirectionDeg, currentLang) || liveState.windDirText);
     setText('[data-i18n="unit-wind"]', metricLangs.has(currentLang) ? (currentLang === 'ua' ? ' км/год' : currentLang === 'ru' ? ' км/ч' : ' km/h') : ' mph');
     setText('[data-i18n="val-surf-height"]', formatWaveHeight(liveState.waveHeightM, currentLang));
     setText('[data-i18n="unit-surf-height"]', metricLangs.has(currentLang) ? ' м' : ' ft');
+    const uv = uvBand(liveState.uv);
     const uvText = liveState.uv == null ? d['unavailable'] : liveState.uv.toFixed(1);
     const uvValue = document.querySelector('.metric-item [data-i18n="low-val"]')?.parentElement;
     if (uvValue) uvValue.firstChild.textContent = uvText;
+    setText('[data-i18n="low-val"]', ` · ${d[uv.key] || d.unavailable}`);
     setTone(document.querySelector('[data-i18n="water-temp"]')?.closest('.metric-item'), waterTempScore(liveState.waterTempC));
     setTone(document.querySelector('[data-i18n="wind"]')?.closest('.metric-item'), windScore(liveState.windMps));
     setTone(document.querySelector('[data-i18n="uv-index"]')?.closest('.metric-item'), uvScore(liveState.uv));
@@ -1009,9 +1060,12 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
       const speed = Number(row?.s);
       const gust = Number(row?.g);
       const direction = Number(row?.d);
+      if (liveState.windSource === 'nws') return;
       if (Number.isFinite(speed)) liveState.windMps = speed;
       if (Number.isFinite(gust)) liveState.windGustMps = gust;
       if (Number.isFinite(direction)) liveState.windDirectionDeg = direction;
+      liveState.windDirText = row?.dr || '';
+      liveState.windSource = 'noaa';
     } catch (error) {
       console.warn('wind unavailable', error);
     }
@@ -1029,6 +1083,14 @@ body.motion-on .wave2{animation:wave2 2.8s linear infinite}
             ? (Number(period.temperature) - 32) * 5 / 9
             : Number(period.temperature);
           if (Number.isFinite(tempC)) liveState.airTempC = tempC;
+          const wind = parseWindMph(period.windSpeed);
+          if (wind) {
+            liveState.windMps = wind.lowMps;
+            liveState.windGustMps = wind.highMps;
+            liveState.windDirectionDeg = degreesFromDirection(period.windDirection);
+            liveState.windDirText = period.windDirection || '';
+            liveState.windSource = 'nws';
+          }
           liveState.weatherState = weatherCodeToState(null, period.shortForecast || '');
         }
       }
