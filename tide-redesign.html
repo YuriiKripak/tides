@@ -41,7 +41,8 @@ body::before{
 /* ── HEADER ── */
 .hdr{
   display:grid;grid-template-columns:minmax(0,1fr) auto;
-  grid-template-areas:"place side" "weather weather";
+  grid-template-areas:"place side";
+  position:relative;
   align-items:start;gap:8px 10px;padding-bottom:4px
 }
 .hdr-place{grid-area:place;min-width:0;max-width:230px}
@@ -68,7 +69,8 @@ body::before{
 .loc-status.ok{color:#7dd3fc}
 .hdr-side{grid-area:side;justify-self:end;display:flex;align-items:flex-start}
 .weather-readout{
-  grid-area:weather;justify-self:center;display:flex;align-items:center;gap:6px;color:var(--text);
+  position:absolute;left:50%;top:36px;transform:translateX(-50%);
+  display:flex;align-items:center;gap:6px;color:var(--text);
   text-shadow:0 0 18px rgba(125,211,252,.12)
 }
 .wx-icon{font-size:17px;line-height:1}
@@ -172,7 +174,7 @@ body.motion-on .bubble{
 
 /* ── METRICS PANEL ── */
 .grid.metrics-panel{
-  display:flex;flex-direction:column;gap:8px;flex:1;
+  display:flex;flex-direction:column;gap:8px;flex:0 0 auto;
   background:linear-gradient(180deg,rgba(21,18,49,.88),rgba(5,8,24,.92));
   border:1px solid rgba(255,255,255,.08);
   border-radius:22px;padding:14px;
