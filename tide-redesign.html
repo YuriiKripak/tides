@@ -39,16 +39,36 @@ body::before{
 }
 
 /* ── HEADER ── */
-.hdr{display:grid;grid-template-columns:minmax(118px,1fr) auto minmax(78px,1fr);align-items:start;gap:10px;padding-bottom:4px}
-.hdr-place{min-width:0}
-.loc-name{font-size:19px;font-weight:500;letter-spacing:.02em;line-height:1;white-space:nowrap}
+.hdr{
+  display:grid;grid-template-columns:minmax(0,1fr) auto;
+  grid-template-areas:"place side" "weather weather";
+  align-items:start;gap:8px 10px;padding-bottom:4px
+}
+.hdr-place{grid-area:place;min-width:0;max-width:230px}
+.loc-name{
+  font-size:19px;font-weight:500;letter-spacing:.02em;line-height:1;white-space:nowrap;
+  max-width:230px;overflow:hidden;text-overflow:ellipsis
+}
 .loc-sub{
   font-size:9.8px;font-weight:600;
   color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-top:2px;white-space:nowrap
 }
-.hdr-side{justify-self:end;display:flex;align-items:flex-start}
+.loc-action{
+  margin-top:6px;border:1px solid rgba(125,211,252,.16);border-radius:999px;
+  padding:4px 8px;background:rgba(255,255,255,.055);color:var(--teal);
+  font:inherit;font-size:10px;font-weight:750;letter-spacing:.04em;
+  cursor:pointer;max-width:126px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+.loc-action:disabled{cursor:wait;color:#7f9bb2;background:rgba(255,255,255,.035)}
+.loc-status{
+  margin-top:4px;max-width:230px;font-size:9px;font-weight:650;line-height:1.15;
+  color:#7f9bb2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+.loc-status.warn{color:#fbbf24}
+.loc-status.ok{color:#7dd3fc}
+.hdr-side{grid-area:side;justify-self:end;display:flex;align-items:flex-start}
 .weather-readout{
-  justify-self:center;display:flex;align-items:center;gap:6px;color:var(--text);
+  grid-area:weather;justify-self:center;display:flex;align-items:center;gap:6px;color:var(--text);
   text-shadow:0 0 18px rgba(125,211,252,.12)
 }
 .wx-icon{font-size:17px;line-height:1}
@@ -248,8 +268,10 @@ body.motion-on .grid.metrics-panel{
   <!-- HEADER -->
   <div class="hdr">
     <div class="hdr-place">
-      <div class="loc-name">Myrtle Beach</div>
+      <div class="loc-name" id="loc-name">Myrtle Beach</div>
       <div class="loc-sub" data-i18n="loc-sub">Local time · --:--</div>
+      <button class="loc-action" id="location-btn" type="button" data-i18n="location-use">Use my location</button>
+      <div class="loc-status" id="location-status"></div>
     </div>
     <div class="weather-readout" aria-label="Current weather">
       <span class="wx-icon">⛈️</span>
@@ -498,6 +520,13 @@ body.motion-on .grid.metrics-panel{
       'val-surf-height':'2–3',
       'unit-surf-height':' ft',
       'data-updated': 'NOAA data · updated 04:00',
+      'location-use':  'Use my location',
+      'location-loading':'Finding coast...',
+      'location-default':'Myrtle Beach station',
+      'location-ready':'Nearest tide station',
+      'location-denied':'Location unavailable',
+      'location-too-far':'No nearby tide station',
+      'location-error':'Location failed',
     },
     ru: {
       'loc-label':    'Местное время',
@@ -540,6 +569,13 @@ body.motion-on .grid.metrics-panel{
       'val-surf-height':'0.6–0.9',
       'unit-surf-height':' м',
       'data-updated': 'Данные NOAA · обновлено 04:00',
+      'location-use':  'Моя локация',
+      'location-loading':'Ищу берег...',
+      'location-default':'Станция Myrtle Beach',
+      'location-ready':'Ближайшая станция',
+      'location-denied':'Локация недоступна',
+      'location-too-far':'Рядом нет tide station',
+      'location-error':'Ошибка локации',
     },
     ua: {
       'loc-label':    'Місцевий час',
@@ -582,6 +618,13 @@ body.motion-on .grid.metrics-panel{
       'val-surf-height':'0.6–0.9',
       'unit-surf-height':' м',
       'data-updated': 'Дані NOAA · оновлено 04:00',
+      'location-use':  'Моя локація',
+      'location-loading':'Шукаю узбережжя...',
+      'location-default':'Станція Myrtle Beach',
+      'location-ready':'Найближча станція',
+      'location-denied':'Локація недоступна',
+      'location-too-far':'Поруч немає tide station',
+      'location-error':'Помилка локації',
     },
     es: {
       'loc-label':    'Hora local',
@@ -624,18 +667,38 @@ body.motion-on .grid.metrics-panel{
       'val-surf-height':'0.6–0.9',
       'unit-surf-height':' m',
       'data-updated': 'Datos NOAA · actualizado 04:00',
+      'location-use':  'Mi ubicación',
+      'location-loading':'Buscando costa...',
+      'location-default':'Estación Myrtle Beach',
+      'location-ready':'Estación más cercana',
+      'location-denied':'Ubicación no disponible',
+      'location-too-far':'Sin estación cercana',
+      'location-error':'Error de ubicación',
     },
   };
 
-  const STATION_ID = '8661070';
-  const SPRINGMAID = { lat: 33.655, lon: -78.918 };
+  const DEFAULT_LOCATION = {
+    label: 'Myrtle Beach',
+    lat: 33.655,
+    lon: -78.918,
+    stationId: '8661070',
+    stationName: 'Springmaid Pier',
+    stationDistanceKm: 0,
+    timeZone: 'America/New_York',
+    isDefault: true,
+    supportsBeachConditions: true,
+  };
+  let activeLocation = { ...DEFAULT_LOCATION };
   const NOAA_API = 'https://api.tidesandcurrents.noaa.gov/api/prod/datagetter';
-  const NWS_POINTS_API = `https://api.weather.gov/points/${SPRINGMAID.lat},${SPRINGMAID.lon}`;
+  const NOAA_MDAPI = 'https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json';
   const OPEN_METEO_API = 'https://api.open-meteo.com/v1/forecast';
   const OPEN_METEO_MARINE_API = 'https://marine-api.open-meteo.com/v1/marine';
   const timeLocales = { en:'en-US', ru:'ru-RU', ua:'uk-UA', es:'en-US' };
   const metricLangs = new Set(['ru','ua','es']);
-  let liveState = {
+  const MAX_STATION_DISTANCE_KM = 120;
+  let stationCatalogPromise = null;
+  function freshLiveState() {
+    return {
     tide: null,
     waterTempC: null,
     windMps: null,
@@ -650,7 +713,12 @@ body.motion-on .grid.metrics-panel{
     waveHeightM: null,
     weatherState: document.body.dataset.weather || 'storm',
     updatedAt: null,
-  };
+    locationStatus: 'default',
+    locationError: '',
+    beachConditionsAvailable: true,
+    };
+  }
+  let liveState = freshLiveState();
   let needleIntroStarted = false;
   let needleSettled = false;
   let needleAnimationFrame = 0;
@@ -660,15 +728,18 @@ body.motion-on .grid.metrics-panel{
   }
 
   function formatLocalTime(lang) {
-    return formatClock(new Date(), lang);
+    return formatClock(new Date(), lang, activeLocation.timeZone);
   }
 
-  function formatClock(date, lang = currentLang) {
-    return new Intl.DateTimeFormat(timeLocales[lang] || timeLocales.en, {
-      timeZone: 'America/New_York',
+  function formatClock(date, lang = currentLang, timeZone = null) {
+    const options = {
       hour: '2-digit',
       minute: '2-digit',
       hour12: isHour12(lang),
+    };
+    if (timeZone) options.timeZone = timeZone;
+    return new Intl.DateTimeFormat(timeLocales[lang] || timeLocales.en, {
+      ...options,
     }).format(date);
   }
 
@@ -689,6 +760,7 @@ body.motion-on .grid.metrics-panel{
     const d = T[lang] || T.en;
     const el = document.querySelector('[data-i18n="loc-sub"]');
     if (el) el.textContent = `${d['loc-label']} · ${formatLocalTime(lang)}`;
+    setLocationText();
   }
 
   function formatDuration(ms, lang = currentLang) {
@@ -724,6 +796,173 @@ body.motion-on .grid.metrics-panel{
     }
   }
 
+  function stationListUrl(type) {
+    const url = new URL(NOAA_MDAPI);
+    url.searchParams.set('type', type);
+    url.searchParams.set('units', 'metric');
+    return url;
+  }
+
+  function normalizeStations(payload) {
+    return payload.stationList || payload.stations || [];
+  }
+
+  async function fetchStationCatalog() {
+    if (!stationCatalogPromise) {
+      stationCatalogPromise = Promise.all([
+        fetchJson(stationListUrl('waterlevels')),
+        fetchJson(stationListUrl('tidepredictions')),
+      ]).then(([waterLevels, predictions]) => {
+        const predictionIds = new Set(normalizeStations(predictions).map(station => String(station.id)));
+        return normalizeStations(waterLevels)
+          .filter(station => predictionIds.has(String(station.id)))
+          .map(station => ({
+            id: String(station.id),
+            name: station.name || String(station.id),
+            lat: Number(station.lat),
+            lon: Number(station.lng ?? station.lon),
+            state: station.state || '',
+            timeZone: station.timezone || DEFAULT_LOCATION.timeZone,
+            tidal: station.tidal !== false,
+          }))
+          .filter(station => station.tidal && Number.isFinite(station.lat) && Number.isFinite(station.lon));
+      });
+    }
+    return stationCatalogPromise;
+  }
+
+  function haversineKm(a, b) {
+    const toRad = value => value * Math.PI / 180;
+    const radiusKm = 6371;
+    const dLat = toRad(b.lat - a.lat);
+    const dLon = toRad(b.lon - a.lon);
+    const lat1 = toRad(a.lat);
+    const lat2 = toRad(b.lat);
+    const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+    return 2 * radiusKm * Math.asin(Math.min(1, Math.sqrt(h)));
+  }
+
+  function distanceLabel(km, lang = currentLang) {
+    if (!Number.isFinite(km)) return '';
+    if (metricLangs.has(lang)) return `${Math.round(km)} km`;
+    return `${Math.round(km * 0.621371)} mi`;
+  }
+
+  function setLocationText() {
+    const d = T[currentLang] || T.en;
+    setText('#loc-name', activeLocation.label || DEFAULT_LOCATION.label);
+    const status = document.getElementById('location-status');
+    if (!status) return;
+    status.classList.remove('ok', 'warn');
+    if (liveState.locationStatus === 'loading') {
+      status.textContent = d['location-loading'];
+      return;
+    }
+    if (liveState.locationStatus === 'too-far') {
+      status.textContent = d['location-too-far'];
+      status.classList.add('warn');
+      return;
+    }
+    if (liveState.locationStatus === 'denied') {
+      status.textContent = d['location-denied'];
+      status.classList.add('warn');
+      return;
+    }
+    if (liveState.locationStatus === 'error') {
+      status.textContent = d['location-error'];
+      status.classList.add('warn');
+      return;
+    }
+    if (activeLocation.isDefault) {
+      status.textContent = d['location-default'];
+      return;
+    }
+    status.textContent = `${d['location-ready']} · ${distanceLabel(activeLocation.stationDistanceKm, currentLang)}`;
+    status.classList.add('ok');
+  }
+
+  function resetLiveState(locationStatus = 'ready') {
+    liveState = freshLiveState();
+    liveState.locationStatus = locationStatus;
+    liveState.beachConditionsAvailable = !!activeLocation.supportsBeachConditions;
+    liveState.weatherState = document.body.dataset.weather || 'storm';
+  }
+
+  function setActiveLocation(location, status = 'ready') {
+    activeLocation = { ...DEFAULT_LOCATION, ...location };
+    resetLiveState(status);
+    needleIntroStarted = false;
+    needleSettled = false;
+    setLocationText();
+    renderLiveData();
+  }
+
+  function getBrowserPosition() {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error('Geolocation unavailable'));
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(resolve, reject, {
+        enableHighAccuracy: false,
+        timeout: 12000,
+        maximumAge: 300000,
+      });
+    });
+  }
+
+  async function locateNearestTideStation(coords) {
+    const catalog = await fetchStationCatalog();
+    const point = { lat: coords.latitude, lon: coords.longitude };
+    let best = null;
+    for (const station of catalog) {
+      const distanceKm = haversineKm(point, station);
+      if (!best || distanceKm < best.distanceKm) best = { ...station, distanceKm };
+    }
+    if (!best) throw new Error('No NOAA tide station catalog entries');
+    if (best.distanceKm > MAX_STATION_DISTANCE_KM) {
+      setActiveLocation(DEFAULT_LOCATION, 'too-far');
+      liveState.locationError = 'No nearby NOAA tide station';
+      return null;
+    }
+    return {
+      label: best.name,
+      lat: coords.latitude,
+      lon: coords.longitude,
+      stationId: best.id,
+      stationName: best.name,
+      stationDistanceKm: best.distanceKm,
+      timeZone: best.timeZone || DEFAULT_LOCATION.timeZone,
+      isDefault: false,
+      supportsBeachConditions: false,
+    };
+  }
+
+  async function useBrowserLocation() {
+    const button = document.getElementById('location-btn');
+    try {
+      if (button) button.disabled = true;
+      liveState.locationStatus = 'loading';
+      setLocationText();
+      const position = await getBrowserPosition();
+      const location = await locateNearestTideStation(position.coords);
+      if (!location) {
+        await refreshLiveData();
+        if (button) button.disabled = false;
+        return;
+      }
+      setActiveLocation(location, 'ready');
+      await refreshLiveData();
+    } catch (error) {
+      console.warn('location unavailable', error);
+      liveState.locationStatus = error?.code === 1 ? 'denied' : 'error';
+      liveState.locationError = error?.message || '';
+      setLocationText();
+    } finally {
+      if (button) button.disabled = false;
+    }
+  }
+
   function parseNoaaLocalTime(value) {
     const [datePart, timePart] = value.split(' ');
     const [year, month, day] = datePart.split('-').map(Number);
@@ -732,12 +971,10 @@ body.motion-on .grid.metrics-panel{
   }
 
   function noaaDate(date) {
-    return new Intl.DateTimeFormat('en-CA', {
-      timeZone: 'America/New_York',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    }).format(date).replaceAll('-', '');
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}${m}${d}`;
   }
 
   function clamp(value, min, max) {
@@ -1118,7 +1355,7 @@ body.motion-on .grid.metrics-panel{
   async function loadTides() {
     const latest = await fetchJson(noaaUrl({
       date: 'latest',
-      station: STATION_ID,
+      station: activeLocation.stationId,
       product: 'water_level',
       datum: 'MLLW',
       units: 'metric',
@@ -1135,7 +1372,7 @@ body.motion-on .grid.metrics-panel{
       begin_date: beginDate,
       range: '72',
       datum: 'MLLW',
-      station: STATION_ID,
+      station: activeLocation.stationId,
       time_zone: 'lst_ldt',
       units: 'metric',
       interval: 'hilo',
@@ -1181,7 +1418,7 @@ body.motion-on .grid.metrics-panel{
   async function loadNoaaProduct(product) {
     const data = await fetchJson(noaaUrl({
       date: 'latest',
-      station: STATION_ID,
+      station: activeLocation.stationId,
       product,
       units: 'metric',
       time_zone: 'lst_ldt',
@@ -1220,7 +1457,12 @@ body.motion-on .grid.metrics-panel{
 
   async function loadWeather() {
     try {
-      const point = await fetchJson(NWS_POINTS_API);
+      const pointUrl = `https://api.weather.gov/points/${activeLocation.lat.toFixed(4)},${activeLocation.lon.toFixed(4)}`;
+      const point = await fetchJson(pointUrl);
+      if (point.properties?.timeZone) {
+        activeLocation.timeZone = point.properties.timeZone;
+        updateLocalTime(currentLang);
+      }
       const hourlyUrl = point.properties?.forecastHourly;
       if (hourlyUrl) {
         const hourly = await fetchJson(hourlyUrl);
@@ -1246,12 +1488,12 @@ body.motion-on .grid.metrics-panel{
   async function loadOpenMeteo() {
     try {
       const forecast = await fetchJson(openMeteoUrl(OPEN_METEO_API, {
-        latitude: SPRINGMAID.lat,
-        longitude: SPRINGMAID.lon,
+        latitude: activeLocation.lat,
+        longitude: activeLocation.lon,
         current: 'temperature_2m,weather_code,uv_index,is_day',
         temperature_unit: 'celsius',
         wind_speed_unit: 'ms',
-        timezone: 'America/New_York',
+        timezone: 'auto',
       }));
       const current = forecast.current || {};
       const temp = Number(current.temperature_2m);
@@ -1264,12 +1506,16 @@ body.motion-on .grid.metrics-panel{
     } catch (error) {
       console.warn('Open-Meteo forecast unavailable', error);
     }
+    if (!activeLocation.supportsBeachConditions) {
+      liveState.waveHeightM = null;
+      return;
+    }
     try {
       const marine = await fetchJson(openMeteoUrl(OPEN_METEO_MARINE_API, {
-        latitude: SPRINGMAID.lat,
-        longitude: SPRINGMAID.lon,
+        latitude: activeLocation.lat,
+        longitude: activeLocation.lon,
         current: 'wave_height',
-        timezone: 'America/New_York',
+        timezone: 'auto',
       }));
       const wave = Number(marine.current?.wave_height);
       if (Number.isFinite(wave)) liveState.waveHeightM = wave;
@@ -1309,6 +1555,8 @@ body.motion-on .grid.metrics-panel{
     const tpLo = document.getElementById('tp-lo');
     if (tpHi) tpHi.textContent = d['bezel-hi'];
     if (tpLo) tpLo.textContent = d['bezel-lo'];
+    const locationBtn = document.getElementById('location-btn');
+    if (locationBtn) locationBtn.textContent = d['location-use'];
     renderLiveData();
   }
 
@@ -1365,6 +1613,7 @@ body.motion-on .grid.metrics-panel{
     lbl.textContent=langCode[currentLang];
     applyLang(currentLang);
   });
+  document.getElementById('location-btn')?.addEventListener('click', useBrowserLocation);
   document.querySelectorAll('.bubble').forEach(bubble => {
     bubble.addEventListener('animationiteration', () => {
       const waterY = Number(bubble.dataset.waterY);
