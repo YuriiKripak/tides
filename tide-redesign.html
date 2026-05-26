@@ -766,14 +766,15 @@ body.motion-on .grid.metrics-panel{
     return { lowMps: low * 0.44704, highMps: high != null ? high * 0.44704 : null };
   }
 
-  function weatherCodeToState(code, fallback = '') {
+  function weatherCodeToState(code, fallback = '', isDaytime = null) {
     const text = String(fallback).toLowerCase();
     if ([95,96,99].includes(code) || /thunder|storm|гроза|tormenta/.test(text)) return 'storm';
-    if ([51,53,55,56,57,61,63,65,66,67,80,81,82].includes(code) || /rain|shower|drizzle|дожд|дощ|lluv/.test(text)) return 'rain';
-    if ([45,48,71,73,75,77,85,86].includes(code) || /snow|fog|туман/.test(text)) return 'cloudy';
-    if ([1,2].includes(code) || /partly|mostly sunny|перем/.test(text)) return 'partly-cloudy';
+    if ([51,53,55,56,57,61,63,65,66,67,80,81,82].includes(code) || /rain|shower|drizzle|freezing|sleet|wintry|ice|дожд|дощ|lluv/.test(text)) return 'rain';
+    if ([45,48,71,73,75,77,85,86].includes(code) || /snow|fog|haze|smoke|mist|overcast|туман/.test(text)) return 'cloudy';
+    if ([1,2].includes(code) || /partly|mostly cloudy|mostly sunny|перем/.test(text)) return 'partly-cloudy';
     if (code === 3 || /cloud|облач|хмар|nublado/.test(text)) return 'cloudy';
-    return 'clear-night';
+    if (code === 0 || /sunny|clear|fair|despejado|ясно|соняч/.test(text)) return isDaytime === false ? 'clear-night' : 'sunny';
+    return isDaytime === false ? 'clear-night' : 'sunny';
   }
 
   function weatherIconForState(state) {
@@ -781,7 +782,7 @@ body.motion-on .grid.metrics-panel{
       storm: '⛈️',
       rain: '🌧️',
       cloudy: '☁️',
-      'partly-cloudy': '🌦️',
+      'partly-cloudy': '🌤️',
       sunny: '☀️',
       'clear-night': '🌙',
     })[state] || '🌦️';
@@ -1233,7 +1234,7 @@ body.motion-on .grid.metrics-panel{
             liveState.windDirText = period.windDirection || '';
             liveState.windSource = 'nws';
           }
-          liveState.nwsWeatherState = weatherCodeToState(null, period.shortForecast || '');
+          liveState.nwsWeatherState = weatherCodeToState(null, period.shortForecast || '', period.isDaytime);
           liveState.weatherState = reconcileWeatherState();
         }
       }
@@ -1247,7 +1248,7 @@ body.motion-on .grid.metrics-panel{
       const forecast = await fetchJson(openMeteoUrl(OPEN_METEO_API, {
         latitude: SPRINGMAID.lat,
         longitude: SPRINGMAID.lon,
-        current: 'temperature_2m,weather_code,uv_index',
+        current: 'temperature_2m,weather_code,uv_index,is_day',
         temperature_unit: 'celsius',
         wind_speed_unit: 'ms',
         timezone: 'America/New_York',
@@ -1258,7 +1259,7 @@ body.motion-on .grid.metrics-panel{
       const code = Number(current.weather_code);
       if (Number.isFinite(temp)) liveState.airTempC = temp;
       if (Number.isFinite(uv)) liveState.uv = uv;
-      if (Number.isFinite(code)) liveState.openMeteoWeatherState = weatherCodeToState(code);
+      if (Number.isFinite(code)) liveState.openMeteoWeatherState = weatherCodeToState(code, '', current.is_day === 1);
       liveState.weatherState = reconcileWeatherState();
     } catch (error) {
       console.warn('Open-Meteo forecast unavailable', error);
@@ -1555,9 +1556,11 @@ body.motion-on .grid.metrics-panel{
     // Sun / warm glow
     if(wxState === 'sunny' || wxState === 'partly-cloudy'){
       const sx = W * 0.9, sy = H * -0.04;
-      const sr = Math.min(W, H) * (wxState === 'sunny' ? 0.55 : 0.40);
+      const pulse = animated ? 1 + Math.sin(driftT * 0.8) * 0.025 : 1;
+      const sr = Math.min(W, H) * (wxState === 'sunny' ? 0.55 : 0.40) * pulse;
       const sg = target.createRadialGradient(sx, sy, 0, sx, sy, sr);
-      sg.addColorStop(0,   'rgba(255,195,55,0.55)');
+      const glow = animated ? 0.55 + Math.sin(driftT * 1.2) * 0.05 : 0.55;
+      sg.addColorStop(0,   `rgba(255,195,55,${glow})`);
       sg.addColorStop(0.25,'rgba(255,145,20,0.28)');
       sg.addColorStop(0.55,'rgba(255,85,0,0.10)');
       sg.addColorStop(1,   'rgba(255,50,0,0)');
@@ -1604,7 +1607,8 @@ body.motion-on .grid.metrics-panel{
     // Clouds are cached for animated mode; drift is used only for desktop/static rendering.
     const clouds = CLOUDS[wxState] || [];
     clouds.forEach((c, i) => {
-      const drift = animated ? Math.sin(driftT * 0.12 + i * 1.5) * 0.025 : 0;
+      const speed = wxState === 'cloudy' ? 0.055 : wxState === 'partly-cloudy' ? 0.075 : wxState === 'sunny' ? 0.035 : 0.065;
+      const drift = animated ? Math.sin(driftT * speed + i * 1.5) * 0.045 : 0;
       drawCloud(
         target,
         (c.x + drift) * W,
@@ -1614,6 +1618,18 @@ body.motion-on .grid.metrics-panel{
         c.tc, c.bc, c.a
       );
     });
+
+    if(animated && wxState === 'sunny'){
+      target.save();
+      target.globalAlpha = 0.08 + Math.sin(driftT * 0.7) * 0.025;
+      const breeze = target.createLinearGradient(0, H * 0.58, W, H * 0.74);
+      breeze.addColorStop(0, 'rgba(255,255,255,0)');
+      breeze.addColorStop(0.45, 'rgba(255,245,190,0.45)');
+      breeze.addColorStop(1, 'rgba(255,255,255,0)');
+      target.fillStyle = breeze;
+      target.fillRect(0, H * 0.56, W, H * 0.22);
+      target.restore();
+    }
   }
 
   function drawWeatherOverlay(dt, { animated = false } = {}){
@@ -1665,11 +1681,7 @@ body.motion-on .grid.metrics-panel{
   function renderScene(dt, { animated = false } = {}){
     if(animated) driftT += dt;
     ctx.clearRect(0, 0, W, H);
-    if(animated && staticCanvas.width && staticCanvas.height){
-      ctx.drawImage(staticCanvas, 0, 0, W, H);
-    } else {
-      drawBackdrop(ctx, { animated });
-    }
+    drawBackdrop(ctx, { animated });
     drawWeatherOverlay(dt, { animated });
   }
 
