@@ -695,6 +695,7 @@ body.motion-on .grid.metrics-panel{
   const NOAA_MDAPI = 'https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json';
   const OPEN_METEO_API = 'https://api.open-meteo.com/v1/forecast';
   const OPEN_METEO_MARINE_API = 'https://marine-api.open-meteo.com/v1/marine';
+  const APP_VERSION = 'ba6cefe';
   const timeLocales = { en:'en-US', ru:'ru-RU', ua:'uk-UA', es:'en-US' };
   const metricLangs = new Set(['ru','ua','es']);
   const MAX_STATION_DISTANCE_KM = 120;
@@ -848,6 +849,21 @@ body.motion-on .grid.metrics-panel{
     if (!Number.isFinite(km)) return '';
     if (metricLangs.has(lang)) return `${Math.round(km)} km`;
     return `${Math.round(km * 0.621371)} mi`;
+  }
+
+  function dataUpdatedLabel(lang = currentLang) {
+    return lang === 'ru'
+      ? 'Данные NOAA · обновлено'
+      : lang === 'ua'
+        ? 'Дані NOAA · оновлено'
+        : lang === 'es'
+          ? 'Datos NOAA · actualizado'
+          : 'NOAA data · updated';
+  }
+
+  function renderFooter() {
+    const time = liveState.updatedAt ? formatClock(liveState.updatedAt, currentLang) : '04:00';
+    setText('[data-i18n="data-updated"]', `${dataUpdatedLabel(currentLang)} ${time} · v${APP_VERSION}`);
   }
 
   function setLocationText() {
@@ -1348,9 +1364,7 @@ body.motion-on .grid.metrics-panel{
     setToneClass(document.querySelector('[data-i18n="wind"]')?.closest('.metric-item'), windTone(liveState.windMps));
     setToneClass(document.querySelector('[data-i18n="uv-index"]')?.closest('.metric-item'), uv.tone);
     setToneClass(document.querySelector('[data-i18n="surf-height"]')?.closest('.metric-item'), surfTone(liveState.waveHeightM));
-    if (liveState.updatedAt) {
-      setText('[data-i18n="data-updated"]', `${currentLang === 'ru' ? 'Данные NOAA' : currentLang === 'ua' ? 'Дані NOAA' : currentLang === 'es' ? 'Datos NOAA' : 'NOAA data'} · ${currentLang === 'ru' ? 'обновлено' : currentLang === 'ua' ? 'оновлено' : currentLang === 'es' ? 'actualizado' : 'updated'} ${formatClock(liveState.updatedAt, currentLang)}`);
-    }
+    renderFooter();
     window.updateTideWalkScore(liveState.weatherState);
   }
 

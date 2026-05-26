@@ -24,6 +24,8 @@ const requiredSnippets = [
   "stationId: '8661070'",
   "const NOAA_API = 'https://api.tidesandcurrents.noaa.gov/api/prod/datagetter'",
   "const NOAA_MDAPI = 'https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json'",
+  "const APP_VERSION = 'ba6cefe'",
+  "function renderFooter()",
   "let activeLocation = { ...DEFAULT_LOCATION }",
   "function fetchStationCatalog()",
   "navigator.geolocation.getCurrentPosition",
