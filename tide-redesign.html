@@ -257,8 +257,8 @@ body.motion-on .grid.metrics-panel{
 /* ── FOOTER ── */
 .foot{
   text-align:center;margin-top:5px;
-  font-size:8px;font-weight:600;
-  letter-spacing:.11em;color:rgba(78,110,136,.45);text-transform:uppercase
+  font-size:9px;font-weight:750;
+  letter-spacing:.105em;color:rgba(125,211,252,.66);text-transform:uppercase
 }
 </style>
 </head>
@@ -695,7 +695,7 @@ body.motion-on .grid.metrics-panel{
   const NOAA_MDAPI = 'https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json';
   const OPEN_METEO_API = 'https://api.open-meteo.com/v1/forecast';
   const OPEN_METEO_MARINE_API = 'https://marine-api.open-meteo.com/v1/marine';
-  const APP_VERSION = 'ba6cefe';
+  const APP_VERSION = '2026.05.26.1';
   const timeLocales = { en:'en-US', ru:'ru-RU', ua:'uk-UA', es:'en-US' };
   const metricLangs = new Set(['ru','ua','es']);
   const MAX_STATION_DISTANCE_KM = 120;
@@ -863,7 +863,7 @@ body.motion-on .grid.metrics-panel{
 
   function renderFooter() {
     const time = liveState.updatedAt ? formatClock(liveState.updatedAt, currentLang) : '04:00';
-    setText('[data-i18n="data-updated"]', `${dataUpdatedLabel(currentLang)} ${time} · v${APP_VERSION}`);
+    setText('[data-i18n="data-updated"]', `${dataUpdatedLabel(currentLang)} ${time} · APP v${APP_VERSION}`);
   }
 
   function setLocationText() {
