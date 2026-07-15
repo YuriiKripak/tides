@@ -146,6 +146,17 @@ body.motion-on[data-weather="partly-cloudy"] .wx-sun{animation:sunPulse 6s ease-
 body[data-weather="sunny"] .wx-rays{opacity:1}
 body.motion-on[data-weather="sunny"] .wx-rays{animation:raysRotate 120s linear infinite}
 @keyframes raysRotate{from{transform:translateZ(0) rotate(0deg)}to{transform:translateZ(0) rotate(360deg)}}
+
+/* Mobile/touch: rotating rays + pulsing sun are the priciest GPU layers. Shrink and freeze them. */
+@media (max-width: 768px), (pointer: coarse){
+  body.motion-on[data-weather="sunny"] .wx-sun,
+  body.motion-on[data-weather="partly-cloudy"] .wx-sun,
+  body.motion-on[data-weather="sunny"] .wx-rays{
+    animation:none!important
+  }
+  .wx-sun{max-width:320px;max-height:320px}
+  .wx-rays{max-width:420px;max-height:420px}
+}
 .wx-moon{
   position:absolute;top:8%;right:22%;width:54px;height:54px;border-radius:50%;
   background:radial-gradient(circle at 35% 35%,rgba(232,238,255,.95) 0%,rgba(200,215,255,.7) 70%,rgba(200,215,255,0) 100%);
@@ -2136,8 +2147,37 @@ const WeatherQuality = (function(){
   let motionEnabled = false;
   let pageVisible = !document.hidden;
   let appVisible = true;
-  const shouldAnimate = () => motionEnabled && pageVisible && appVisible && motionAllowed();
+  let idle = false;
+  let idleTimer = 0;
+  const IDLE_MS = 60000; // Pause weather animation after 60s of no interaction (GPU/heat saver).
+  const shouldAnimate = () => motionEnabled && pageVisible && appVisible && motionAllowed() && !idle;
   const shouldRunRain = () => shouldAnimate() && ['rain', 'storm'].includes(document.body.dataset.weather || '');
+
+  function clearIdleTimer(){
+    if (idleTimer) { window.clearTimeout(idleTimer); idleTimer = 0; }
+  }
+
+  function armIdleTimer(){
+    clearIdleTimer();
+    if (!motionEnabled) return;
+    idleTimer = window.setTimeout(() => {
+      idleTimer = 0;
+      idle = true;
+      syncRuntime();
+    }, IDLE_MS);
+  }
+
+  function onUserActivity(){
+    if (!motionEnabled) return;
+    if (idle) {
+      idle = false;
+      syncRuntime();
+    }
+    armIdleTimer();
+  }
+  ['pointerdown', 'touchstart', 'keydown', 'scroll'].forEach(evt => {
+    window.addEventListener(evt, onUserActivity, { passive: true });
+  });
 
   function updateMotionButton(){
     if (!motionBtn) return;
@@ -2162,12 +2202,16 @@ const WeatherQuality = (function(){
       return;
     }
     motionEnabled = true;
+    idle = false;
     document.body.classList.add('motion-on');
     syncRuntime();
+    armIdleTimer();
   }
 
   function stopMotion(){
     motionEnabled = false;
+    idle = false;
+    clearIdleTimer();
     document.body.classList.remove('motion-on');
     syncRuntime();
   }
@@ -2206,6 +2250,8 @@ const WeatherQuality = (function(){
   WeatherQuality.onChange((tier) => {
     if (tier === 'static') {
       motionEnabled = false;
+      idle = false;
+      clearIdleTimer();
       document.body.classList.remove('motion-on');
     }
     syncRuntime();
