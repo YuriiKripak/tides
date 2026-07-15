@@ -1,6 +1,7 @@
 import { access, readFile } from "node:fs/promises";
 
 const requiredFiles = [
+  "tide-redesign.html",
   "tide-deploy/index.html",
   "tide-deploy/site.webmanifest",
   "tide-deploy/favicon.svg",
@@ -10,7 +11,13 @@ for (const file of requiredFiles) {
   await access(file);
 }
 
+const sourceHtml = await readFile("tide-redesign.html", "utf8");
 const html = await readFile("tide-deploy/index.html", "utf8");
+
+if (sourceHtml !== html) {
+  throw new Error("Deploy HTML is out of sync with tide-redesign.html");
+}
+
 const requiredSnippets = [
   "const langSeq=['en','ru','ua','es']",
   "'loc-label':    'Hora local'",
@@ -24,7 +31,7 @@ const requiredSnippets = [
   "stationId: '8661070'",
   "const NOAA_API = 'https://api.tidesandcurrents.noaa.gov/api/prod/datagetter'",
   "const NOAA_MDAPI = 'https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json'",
-  "const APP_VERSION = '2026.05.26.2'",
+  "const APP_VERSION = '2026.07.15.1'",
   "APP v${APP_VERSION}",
   "function renderFooter()",
   "let activeLocation = { ...DEFAULT_LOCATION }",
@@ -43,8 +50,16 @@ const requiredSnippets = [
   "id=\"wx-rain\"",
   "body[data-weather=\"storm\"] .wx-clouds",
   "body.motion-on[data-weather=\"storm\"] .wx-lightning",
-  "function generateStars()",
   "const RainEngine = (function()",
+  "const shouldAnimate = () =>",
+  "const shouldRunRain = () =>",
+  "function syncRuntime()",
+  "frameTimer = window.setTimeout",
+  "function cancelResizeTimer()",
+  "if (!active || intensity === 0 || !quality.enabled || document.hidden) return;",
+  "window.addEventListener('pagehide'",
+  "let appVisible = true",
+  "tier:'medium', fps:20, dpr:1",
   "window.setWeatherVisual = function setWeatherVisual(state)",
   "grid-template-areas:\"place side\"",
   "position:absolute;left:50%;top:36px;transform:translateX(-50%)",
@@ -90,17 +105,45 @@ const requiredSnippets = [
   "function startMotion()",
   "function stopMotion()",
   "let motionEnabled = false",
-  "const fps = isMobile ? 24 : 30",
   "ctx.beginPath()",
   "ctx.stroke()",
   "body.motion-on .grid.metrics-panel",
   "--glass:rgba(8,18,36,.88)",
 ];
 
+const forbiddenPatterns = [
+  ["legacy star generator", /function\s+generateStars\s*\(/],
+  ["independent full-rate motion governor", /const\s+MotionGovernor\b/],
+  ["moving SVG cloud blur", /filter\s*=\s*["']url\(#cloudBlur\)["']/],
+  ["animated CSS blur", /(?:^|[;{\s])filter\s*:\s*blur\(/m],
+  ["dial-wide drop shadow", /filter\s*:\s*drop-shadow\(/],
+  ["animated beacon stroke width", /stroke-width\s*:\s*2\.2/],
+  [
+    "medium rays visible outside sunny weather",
+    /html\[data-quality=["']medium["']\]\s+\.wx-rays\s*\{[^}]*opacity\s*:\s*\.32/i,
+  ],
+];
+
 for (const snippet of requiredSnippets) {
   if (!html.includes(snippet)) {
     throw new Error(`Missing deploy snippet: ${snippet}`);
   }
+}
+
+for (const [label, pattern] of forbiddenPatterns) {
+  if (pattern.test(html)) {
+    throw new Error(`Forbidden deploy pattern: ${label}`);
+  }
+}
+
+const inlineScripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)];
+if (inlineScripts.length === 0) {
+  throw new Error("No inline deploy script found");
+}
+
+for (const [, script] of inlineScripts) {
+  // Compile without executing browser code so syntax regressions fail deployment validation.
+  new Function(script);
 }
 
 console.log("Deploy files look ready.");

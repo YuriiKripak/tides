@@ -63,7 +63,7 @@ for (const file of trackedFiles) {
 }
 
 for (const file of trackedFiles) {
-  const text = git(["show", `HEAD:${file}`], { maxBuffer: 8 * 1024 * 1024 });
+  const text = git(["show", `:${file}`], { maxBuffer: 8 * 1024 * 1024 });
   findSecrets(file, text, failures);
 }
 

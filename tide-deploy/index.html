@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-quality="medium">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -79,8 +79,8 @@ body::before{
   display:flex;align-items:center;gap:5px;
   background:var(--glass);border:1px solid var(--bdr);
   border-radius:18px;padding:4px 6px;
-  backdrop-filter:blur(14px) saturate(1.25);
-  -webkit-backdrop-filter:blur(14px) saturate(1.25)
+  backdrop-filter: blur(14px) saturate(1.25);
+  -webkit-backdrop-filter: blur(14px) saturate(1.25)
 }
 body.motion-on .wx-controls{
   backdrop-filter:none;
@@ -131,8 +131,7 @@ body[data-weather="clear-night"] .wx-sky{background:linear-gradient(180deg,#0305
 .wx-sun{
   position:absolute;top:-22%;right:-18%;width:520px;height:520px;border-radius:50%;
   background:radial-gradient(circle at center,rgba(255,195,55,.55) 0%,rgba(255,145,20,.28) 25%,rgba(255,85,0,.10) 55%,rgba(255,50,0,0) 100%);
-  opacity:0;transform:translateZ(0) scale(1);transition:opacity 1.2s ease;
-  will-change:transform,opacity
+  opacity:0;transform:translateZ(0) scale(1);transition:opacity 1.2s ease
 }
 body[data-weather="sunny"] .wx-sun{opacity:1}
 body[data-weather="partly-cloudy"] .wx-sun{opacity:.55;width:380px;height:380px}
@@ -142,8 +141,7 @@ body.motion-on[data-weather="partly-cloudy"] .wx-sun{animation:sunPulse 6s ease-
 .wx-rays{
   position:absolute;top:-32%;right:-28%;width:680px;height:680px;border-radius:50%;
   background:conic-gradient(from 0deg,rgba(255,190,50,.06) 0deg,transparent 8deg,rgba(255,190,50,.06) 22deg,transparent 30deg,rgba(255,190,50,.06) 44deg,transparent 52deg,rgba(255,190,50,.06) 67deg,transparent 75deg,rgba(255,190,50,.06) 90deg,transparent 98deg,rgba(255,190,50,.06) 112deg,transparent 120deg,rgba(255,190,50,.06) 135deg,transparent 143deg,rgba(255,190,50,.06) 158deg,transparent 166deg,rgba(255,190,50,.06) 180deg,transparent 188deg,rgba(255,190,50,.06) 202deg,transparent 210deg,rgba(255,190,50,.06) 225deg,transparent 233deg,rgba(255,190,50,.06) 248deg,transparent 256deg,rgba(255,190,50,.06) 270deg,transparent 278deg,rgba(255,190,50,.06) 292deg,transparent 300deg,rgba(255,190,50,.06) 315deg,transparent 323deg,rgba(255,190,50,.06) 338deg,transparent 346deg);
-  opacity:0;transform:translateZ(0) rotate(0deg);transition:opacity 1.4s ease;
-  filter:blur(2px);will-change:transform
+  opacity:0;transform:translateZ(0) rotate(0deg);transition:opacity 1.4s ease
 }
 body[data-weather="sunny"] .wx-rays{opacity:1}
 body.motion-on[data-weather="sunny"] .wx-rays{animation:raysRotate 120s linear infinite}
@@ -157,12 +155,6 @@ body.motion-on[data-weather="sunny"] .wx-rays{animation:raysRotate 120s linear i
 body[data-weather="clear-night"] .wx-moon{opacity:1}
 .wx-stars{position:absolute;inset:0 0 50% 0;opacity:0;transition:opacity 1.4s ease}
 body[data-weather="clear-night"] .wx-stars{opacity:1}
-.star{
-  position:absolute;width:2px;height:2px;border-radius:50%;background:#fff;
-  opacity:var(--star-opacity,.6);transform:translateZ(0);will-change:opacity
-}
-body.motion-on[data-weather="clear-night"] .star{animation:twinkle var(--twinkle-dur,4s) ease-in-out infinite;animation-delay:var(--twinkle-delay,0s)}
-@keyframes twinkle{0%,100%{opacity:var(--star-opacity,.6)}50%{opacity:calc(var(--star-opacity,.6) * .35)}}
 .wx-clouds{
   position:absolute;top:-8%;left:-15%;width:130%;height:55%;
   opacity:0;transition:opacity 1.2s ease
@@ -173,13 +165,20 @@ body[data-weather="cloudy"] .wx-clouds{opacity:.95}
 body[data-weather="partly-cloudy"] .wx-clouds{opacity:.55}
 body[data-weather="sunny"] .wx-clouds{opacity:.18}
 body[data-weather="clear-night"] .wx-clouds{opacity:0}
-.cloud{transform-box:fill-box;transform-origin:center;will-change:transform}
+.cloud{transform-box:fill-box;transform-origin:center}
 .cloud-a{--cloud-x:0px;--cloud-y:0px}
 .cloud-b{--cloud-x:380px;--cloud-y:0px}
 .cloud-c{--cloud-x:0px;--cloud-y:140px}
 .cloud-d{--cloud-x:520px;--cloud-y:120px}
 .cloud{transform:translate(var(--cloud-x),var(--cloud-y)) translateZ(0)}
-body.motion-on .cloud{animation:cloudDrift var(--drift-dur,90s) ease-in-out infinite alternate;animation-delay:var(--drift-delay,0s)}
+body.motion-on:not(.wx-paused)[data-weather="storm"] .cloud,
+body.motion-on:not(.wx-paused)[data-weather="rain"] .cloud,
+body.motion-on:not(.wx-paused)[data-weather="cloudy"] .cloud,
+body.motion-on:not(.wx-paused)[data-weather="partly-cloudy"] .cloud,
+body.motion-on:not(.wx-paused)[data-weather="sunny"] .cloud{
+  animation:cloudDrift var(--drift-dur,90s) ease-in-out infinite alternate;
+  animation-delay:var(--drift-delay,0s);will-change:transform
+}
 @keyframes cloudDrift{
   from{transform:translate(var(--cloud-x),var(--cloud-y)) translateZ(0)}
   to{transform:translate(calc(var(--cloud-x) + 40px),var(--cloud-y)) translateZ(0)}
@@ -193,7 +192,7 @@ body[data-weather="storm"] .wx-storm-tint{opacity:1}
 .wx-lightning{
   position:absolute;inset:0;
   background:linear-gradient(180deg,rgba(200,220,255,.55) 0%,rgba(200,220,255,.15) 40%,transparent 70%);
-  opacity:0;will-change:opacity
+  opacity:0
 }
 body.motion-on[data-weather="storm"] .wx-lightning{animation:lightningFlash 11s linear infinite}
 @keyframes lightningFlash{0%,100%{opacity:0}2%{opacity:.7}3%{opacity:.1}4%{opacity:.5}6%{opacity:0}45%{opacity:0}46%{opacity:.4}47%{opacity:0}}
@@ -212,7 +211,7 @@ body[data-weather="cloudy"] .wx-haze{opacity:1}
 .wx-breeze{
   position:absolute;bottom:25%;left:-10%;right:-10%;height:22%;
   background:linear-gradient(180deg,transparent 0%,rgba(255,245,190,.18) 50%,transparent 100%);
-  opacity:0;transform:translateZ(0);transition:opacity 1.2s ease;filter:blur(8px)
+  opacity:0;transform:translateZ(0);transition:opacity 1.2s ease
 }
 body[data-weather="sunny"] .wx-breeze{opacity:.6}
 body.motion-on[data-weather="sunny"] .wx-breeze{animation:breezeShimmer 5s ease-in-out infinite}
@@ -226,28 +225,24 @@ body.motion-on[data-weather="sunny"] .wx-breeze{animation:breezeShimmer 5s ease-
 /* ── DIAL ── */
 .dial-wrap{display:flex;justify-content:center;padding:2px 0}
 .dial{
-  width:100%;max-width:360px;height:auto;overflow:visible;
-  filter:drop-shadow(0 6px 36px rgba(15,184,168,.09))
+  width:100%;max-width:360px;height:auto;overflow:visible
 }
 #score-beacon{transition:fill .25s ease,opacity .25s ease;transform-origin:180px 180px}
-@keyframes scorePulse{
-  0%,100%{opacity:.86;transform:scale(1);stroke-width:1.1}
-  50%{opacity:1;transform:scale(1.18);stroke-width:2.2}
-}
+@keyframes scorePulse{0%,100%{opacity:.84}50%{opacity:1}}
 body.motion-on #score-beacon{animation:scorePulse 1.8s ease-in-out infinite}
 
 /* Wave animations */
 @keyframes wave1{from{transform:translateX(0)}to{transform:translateX(180px)}}
 @keyframes wave2{from{transform:translateX(0)}to{transform:translateX(270px)}}
-body.motion-on .wave1{animation:wave1 4s linear infinite}
-body.motion-on .wave2{animation:wave2 2.8s linear infinite}
+body.motion-on .wave1{animation:wave1 7s linear infinite}
+body.motion-on .wave2{animation:wave2 5.5s linear infinite}
 @keyframes bubbleRise{
   0%{transform:translateY(0) scale(.82);opacity:0}
   12%{opacity:.55}
   82%{opacity:.38}
   100%{transform:translateY(var(--bubble-rise,-160px)) scale(1.18);opacity:0}
 }
-.bubble{opacity:0;transform-box:fill-box;transform-origin:center;will-change:transform,opacity}
+.bubble{opacity:0;transform-box:fill-box;transform-origin:center}
 body.motion-on .bubble{
   animation:bubbleRise var(--bubble-duration,5.8s) ease-in-out infinite;
   animation-delay:var(--bubble-delay,0s)
@@ -286,8 +281,8 @@ body.motion-on .bubble{
   border:1px solid rgba(255,255,255,.08);
   border-radius:22px;padding:14px;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 14px 36px rgba(0,0,0,.22);
-  backdrop-filter:blur(18px) saturate(1.15);
-  -webkit-backdrop-filter:blur(18px) saturate(1.15)
+  backdrop-filter: blur(18px) saturate(1.15);
+  -webkit-backdrop-filter: blur(18px) saturate(1.15)
 }
 body.motion-on .grid.metrics-panel{
   backdrop-filter:none;
@@ -367,6 +362,110 @@ body.motion-on .grid.metrics-panel{
   font-size:9px;font-weight:750;
   letter-spacing:.105em;color:rgba(125,211,252,.66);text-transform:uppercase
 }
+
+
+/* ──────────────────────────────────────────────────────────────
+   PERFORMANCE PATCH v2026.07.15
+   Mobile-safe energy-budgeted weather/tide runtime.
+   Main fixes: no animated SVG filters, no 80 DOM star layers,
+   no animated blur, full pause state, quality tiers.
+   ────────────────────────────────────────────────────────────── */
+
+/* One-layer star field replaces 80 promoted .star nodes. */
+.wx-stars{
+  position:absolute;inset:0 0 50% 0;opacity:0;
+  transition:opacity 1.4s ease;contain:paint;
+  background-image:
+    radial-gradient(1px 1px at 6% 18%,rgba(255,255,255,.75),transparent),
+    radial-gradient(1.3px 1.3px at 12% 42%,rgba(255,255,255,.9),transparent),
+    radial-gradient(1px 1px at 18% 12%,rgba(255,255,255,.65),transparent),
+    radial-gradient(1.2px 1.2px at 24% 31%,rgba(255,255,255,.85),transparent),
+    radial-gradient(1px 1px at 29% 7%,rgba(255,255,255,.7),transparent),
+    radial-gradient(1.4px 1.4px at 35% 49%,rgba(255,255,255,.88),transparent),
+    radial-gradient(1px 1px at 41% 22%,rgba(255,255,255,.68),transparent),
+    radial-gradient(1.3px 1.3px at 47% 9%,rgba(255,255,255,.95),transparent),
+    radial-gradient(1px 1px at 53% 38%,rgba(255,255,255,.72),transparent),
+    radial-gradient(1.5px 1.5px at 58% 17%,rgba(255,255,255,.9),transparent),
+    radial-gradient(1px 1px at 63% 46%,rgba(255,255,255,.62),transparent),
+    radial-gradient(1.2px 1.2px at 69% 27%,rgba(255,255,255,.8),transparent),
+    radial-gradient(1.6px 1.6px at 73% 11%,rgba(255,255,255,.95),transparent),
+    radial-gradient(1px 1px at 79% 36%,rgba(255,255,255,.7),transparent),
+    radial-gradient(1.3px 1.3px at 84% 20%,rgba(255,255,255,.85),transparent),
+    radial-gradient(1px 1px at 91% 44%,rgba(255,255,255,.74),transparent),
+    radial-gradient(1.4px 1.4px at 96% 14%,rgba(255,255,255,.92),transparent);
+}
+body[data-weather="clear-night"] .wx-stars{opacity:1}
+body.motion-on[data-weather="clear-night"] .wx-stars{animation:twinkleBg 5.8s ease-in-out infinite alternate}
+@keyframes twinkleBg{0%{opacity:.76}100%{opacity:1}}
+
+/* Kill costly animated blur/filter layers. */
+.wx-rays{filter:none!important;will-change:auto!important}
+.wx-breeze{
+  filter:none!important;will-change:auto!important;
+  background:linear-gradient(90deg,transparent 0%,rgba(255,245,190,.04) 20%,rgba(255,245,190,.16) 50%,rgba(255,245,190,.04) 80%,transparent 100%)!important;
+}
+.wx-lightning,.wx-sun,.bubble,#score-beacon{will-change:auto!important}
+.cloud{will-change:auto}
+.dial{filter:none!important}
+
+/* Beacon has no scale, stroke-width, or animated SVG filter re-raster. */
+#score-beacon{filter:none!important;transition:fill .25s ease,opacity .25s ease}
+
+/* Full animation pause state for background tabs / page cache / offscreen. */
+body.wx-paused .wx-stage *,
+body.wx-paused .wave1,
+body.wx-paused .wave2,
+body.wx-paused .bubble,
+body.wx-paused #score-beacon{
+  animation-play-state:paused!important;
+}
+
+/* Quality tiers. Medium keeps two clouds and one wave moving on mobile. */
+html[data-quality="medium"] .wx-sun,
+html[data-quality="medium"] .wx-rays,
+html[data-quality="medium"] .wx-stars,
+html[data-quality="medium"] .wx-lightning,
+html[data-quality="medium"] .cloud-c,
+html[data-quality="medium"] .cloud-d,
+html[data-quality="medium"] .wave2,
+html[data-quality="medium"] .bubble,
+html[data-quality="medium"] #score-beacon{
+  animation:none!important;will-change:auto!important
+}
+html[data-quality="medium"] body[data-weather="sunny"] .wx-rays{opacity:.32}
+html[data-quality="medium"] .wx-breeze{display:none}
+html[data-quality="medium"] .grid.metrics-panel,
+html[data-quality="low"] .grid.metrics-panel,
+html[data-quality="static"] .grid.metrics-panel{
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+  background:linear-gradient(180deg,rgba(21,18,49,.94),rgba(5,8,24,.96))!important;
+}
+html[data-quality="low"] .wx-rays,
+html[data-quality="static"] .wx-rays,
+html[data-quality="low"] .wx-breeze,
+html[data-quality="static"] .wx-breeze,
+html[data-quality="low"] .wx-lightning,
+html[data-quality="static"] .wx-lightning{display:none!important}
+html[data-quality="low"] .wx-stage *{animation:none!important;will-change:auto!important}
+html[data-quality="low"] .wave2,
+html[data-quality="static"] .wave1,
+html[data-quality="static"] .wave2,
+html[data-quality="low"] .bubble,
+html[data-quality="static"] .bubble,
+html[data-quality="low"] #score-beacon{animation:none!important;will-change:auto!important}
+html[data-quality="static"] .wx-stage *,
+html[data-quality="static"] #score-beacon{animation:none!important;transition:none!important}
+html[data-quality="low"] *,
+html[data-quality="static"] *{will-change:auto!important}
+
+@media (prefers-reduced-motion: reduce){
+  .wx-stage *, .cloud, .wx-lightning, .wx-rays, .wx-sun, .wx-breeze,
+  .wave1, .wave2, .bubble, #score-beacon{
+    animation:none!important;transition:none!important;
+  }
+}
+
 </style>
 </head>
 <body data-weather="storm">
@@ -380,30 +479,27 @@ body.motion-on .grid.metrics-panel{
   <div class="wx-breeze"></div>
   <svg class="wx-clouds" viewBox="0 0 1000 400" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
     <defs>
-      <filter id="cloudBlur" x="-20%" y="-20%" width="140%" height="140%">
-        <feGaussianBlur stdDeviation="6"/>
-      </filter>
       <radialGradient id="cloudGrad" cx="50%" cy="40%" r="60%">
         <stop offset="0%" stop-color="rgba(95,72,170,.9)"/>
         <stop offset="60%" stop-color="rgba(60,42,130,.68)"/>
         <stop offset="100%" stop-color="rgba(40,28,90,0)"/>
       </radialGradient>
     </defs>
-    <g class="cloud cloud-a" style="--drift-dur:90s;--drift-delay:0s" filter="url(#cloudBlur)">
+    <g class="cloud cloud-a" style="--drift-dur:90s;--drift-delay:0s">
       <ellipse cx="120" cy="120" rx="180" ry="70" fill="url(#cloudGrad)"/>
       <ellipse cx="80" cy="140" rx="140" ry="55" fill="url(#cloudGrad)"/>
       <ellipse cx="200" cy="130" rx="160" ry="60" fill="url(#cloudGrad)"/>
     </g>
-    <g class="cloud cloud-b" style="--drift-dur:120s;--drift-delay:-30s" filter="url(#cloudBlur)">
+    <g class="cloud cloud-b" style="--drift-dur:120s;--drift-delay:-30s">
       <ellipse cx="200" cy="80" rx="220" ry="80" fill="url(#cloudGrad)"/>
       <ellipse cx="120" cy="110" rx="150" ry="55" fill="url(#cloudGrad)"/>
       <ellipse cx="290" cy="100" rx="170" ry="60" fill="url(#cloudGrad)"/>
     </g>
-    <g class="cloud cloud-c" style="--drift-dur:100s;--drift-delay:-15s" filter="url(#cloudBlur)">
+    <g class="cloud cloud-c" style="--drift-dur:100s;--drift-delay:-15s">
       <ellipse cx="180" cy="100" rx="180" ry="65" fill="url(#cloudGrad)"/>
       <ellipse cx="100" cy="120" rx="130" ry="50" fill="url(#cloudGrad)"/>
     </g>
-    <g class="cloud cloud-d" style="--drift-dur:110s;--drift-delay:-45s" filter="url(#cloudBlur)">
+    <g class="cloud cloud-d" style="--drift-dur:110s;--drift-delay:-45s">
       <ellipse cx="180" cy="100" rx="190" ry="70" fill="url(#cloudGrad)"/>
       <ellipse cx="290" cy="120" rx="140" ry="55" fill="url(#cloudGrad)"/>
     </g>
@@ -462,10 +558,6 @@ body.motion-on .grid.metrics-panel{
         </filter>
         <filter id="fa" x="-50%" y="-50%" width="200%" height="200%">
           <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="b"/>
-          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-        </filter>
-        <filter id="scoreGlow" x="-120%" y="-120%" width="340%" height="340%">
-          <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="b"/>
           <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
         </filter>
         <!-- Left half CCW top→left→bottom — letters face inward (rightward) -->
@@ -566,7 +658,7 @@ body.motion-on .grid.metrics-panel{
       </g>
 
       <!-- Pivot -->
-      <circle id="score-beacon" cx="180" cy="180" r="13" fill="#eab308" stroke="rgba(255,255,255,.58)" stroke-width="1.1" filter="url(#scoreGlow)"/>
+      <circle id="score-beacon" cx="180" cy="180" r="13" fill="#eab308" stroke="rgba(255,255,255,.58)" stroke-width="1.1"/>
       <circle cx="180" cy="180" r="6.5" fill="#06101e" stroke="rgba(255,255,255,.26)" stroke-width="1"/>
       <circle cx="180" cy="180" r="2"   fill="#d8e8f2"/>
     </svg>
@@ -842,7 +934,7 @@ body.motion-on .grid.metrics-panel{
   const NOAA_MDAPI = 'https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json';
   const OPEN_METEO_API = 'https://api.open-meteo.com/v1/forecast';
   const OPEN_METEO_MARINE_API = 'https://marine-api.open-meteo.com/v1/marine';
-  const APP_VERSION = '2026.05.26.2';
+  const APP_VERSION = '2026.07.15.1';
   const timeLocales = { en:'en-US', ru:'ru-RU', ua:'uk-UA', es:'en-US' };
   const metricLangs = new Set(['ru','ua','es']);
   const MAX_STATION_DISTANCE_KM = 120;
@@ -1453,13 +1545,23 @@ body.motion-on .grid.metrics-panel{
     }
   }
 
-  function layoutBubbles(waterY) {
-    document.querySelectorAll('.bubble').forEach((bubble, index) => {
-      bubble.dataset.waterY = waterY.toFixed(1);
+  let _lastBubbleKey = '';
+  function layoutBubblesIfNeeded(waterY, force = false) {
+    const key = waterY.toFixed(1);
+    if (!force && key === _lastBubbleKey) return;
+    _lastBubbleKey = key;
+    document.querySelectorAll('.bubble').forEach((bubble) => {
+      bubble.dataset.waterY = key;
       placeBubble(bubble, waterY);
-      setBubbleTiming(bubble, !bubble.dataset.bubbleReady);
-      bubble.dataset.bubbleReady = 'true';
+      if (!bubble.dataset.bubbleReady) {
+        setBubbleTiming(bubble, true);
+        bubble.dataset.bubbleReady = 'true';
+      }
     });
+  }
+
+  function layoutBubbles(waterY) {
+    layoutBubblesIfNeeded(waterY);
   }
 
   function renderLiveData() {
@@ -1492,7 +1594,7 @@ body.motion-on .grid.metrics-panel{
       document.getElementById('wave-2')?.setAttribute('d', wave2);
       document.getElementById('water-line')?.setAttribute('y1', waterY.toFixed(1));
       document.getElementById('water-line')?.setAttribute('y2', waterY.toFixed(1));
-      layoutBubbles(waterY);
+      layoutBubblesIfNeeded(waterY);
     }
     setText('[data-i18n="val-wx-temp"]', formatTemperature(liveState.airTempC, currentLang));
     setText('.wx-icon', weatherIconForState(liveState.weatherState));
@@ -1777,45 +1879,71 @@ body.motion-on .grid.metrics-panel{
     applyLang(currentLang);
   });
   document.getElementById('location-btn')?.addEventListener('click', useBrowserLocation);
-  document.querySelectorAll('.bubble').forEach(bubble => {
-    bubble.addEventListener('animationiteration', () => {
-      const waterY = Number(bubble.dataset.waterY);
-      if (Number.isFinite(waterY)) {
-        placeBubble(bubble, waterY);
-        setBubbleTiming(bubble);
-      }
-    });
-  });
+  document.querySelector('.dial')?.addEventListener('animationiteration', (event) => {
+    const bubble = event.target;
+    if (!bubble?.classList?.contains('bubble')) return;
+    if (document.hidden || !document.body.classList.contains('motion-on')) return;
+    const waterY = Number(bubble.dataset.waterY);
+    if (Number.isFinite(waterY)) {
+      placeBubble(bubble, waterY);
+      setBubbleTiming(bubble);
+    }
+  }, { passive: true });
 })();
 
-/* ── Hybrid Weather Renderer ── */
-(function generateStars(){
-  const container = document.getElementById('wx-stars');
-  if (!container) return;
-  const fragment = document.createDocumentFragment();
-  for (let i = 0; i < 80; i += 1) {
-    const star = document.createElement('div');
-    const size = Math.random() * 1.8 + 0.6;
-    const opacity = Math.random() * 0.5 + 0.35;
-    star.className = 'star';
-    star.style.cssText = `left:${(Math.random()*100).toFixed(2)}%;top:${(Math.random()*100).toFixed(2)}%;width:${size.toFixed(1)}px;height:${size.toFixed(1)}px;--star-opacity:${opacity.toFixed(2)};--twinkle-dur:${(2.5 + Math.random()*4).toFixed(1)}s;--twinkle-delay:${(Math.random()*4).toFixed(1)}s`;
-    fragment.appendChild(star);
-  }
-  container.appendChild(fragment);
-})();
+/* ── Hybrid Weather Renderer ──
+   Stars are now rendered as a single CSS background layer, not 80 DOM nodes. */
 
 const RainEngine = (function(){
   const canvas = document.getElementById('wx-rain');
   const ctx = canvas?.getContext('2d', { alpha: true });
-  let W = 0, H = 0, dpr = 1, rafId = 0, frameTimer = 0, lastT = 0;
+  const mqReduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  let W = 0, H = 0, dpr = 1, rafId = 0, frameTimer = 0, lastDraw = 0;
   let active = false;
   let intensity = 0;
   let drops = [];
+  let resizeTimer = 0;
+  let lastViewportWidth = window.innerWidth;
+  let sampleFrames = 0;
+  let lateFrames = 0;
+  let quality = { tier:'medium', fps:20, dpr:1, dropScale:.30, round:false, enabled:true };
+
+  function tierConfig(tier){
+    if (tier === 'static') return { tier, fps:0,  dpr:1,    dropScale:0,   round:false, enabled:false };
+    if (tier === 'low')    return { tier, fps:12, dpr:1,    dropScale:.20, round:false, enabled:true  };
+    if (tier === 'high')   return { tier, fps:30, dpr:1.5,  dropScale:1,   round:true,  enabled:true  };
+    return                  { tier:'medium', fps:20, dpr:1, dropScale:.30, round:false, enabled:true };
+  }
+
+  function cancelScheduledFrame(){
+    if (frameTimer) window.clearTimeout(frameTimer);
+    if (rafId) cancelAnimationFrame(rafId);
+    frameTimer = 0;
+    rafId = 0;
+  }
+
+  function cancelResizeTimer(){
+    if (resizeTimer) window.clearTimeout(resizeTimer);
+    resizeTimer = 0;
+  }
+
+  function setTier(tier){
+    const shouldResume = active;
+    cancelScheduledFrame();
+    cancelResizeTimer();
+    quality = tierConfig(tier);
+    if (!quality.enabled) {
+      stop();
+      return;
+    }
+    resize();
+    if (shouldResume && intensity > 0) scheduleNextFrame();
+  }
 
   function resize(){
     if (!canvas || !ctx) return;
-    const isMobile = window.matchMedia('(max-width: 640px)').matches;
-    dpr = Math.min(window.devicePixelRatio || 1, isMobile ? 1.5 : 2);
+    dpr = Math.min(window.devicePixelRatio || 1, quality.dpr);
     W = canvas.clientWidth;
     H = canvas.clientHeight;
     canvas.width = Math.max(1, Math.floor(W * dpr));
@@ -1825,14 +1953,12 @@ const RainEngine = (function(){
   }
 
   function initDrops(){
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const isMobile = window.matchMedia('(max-width: 640px)').matches;
-    if (reduced || intensity === 0) {
+    if (mqReduce.matches || intensity === 0 || !quality.enabled) {
       drops = [];
       return;
     }
     const baseCount = intensity > 0.7 ? 60 : 38;
-    const count = Math.round(baseCount * (isMobile ? 0.55 : 1));
+    const count = Math.max(6, Math.round(baseCount * quality.dropScale));
     drops = Array.from({ length: count }, () => ({
       x: Math.random() * W,
       y: Math.random() * H,
@@ -1841,113 +1967,250 @@ const RainEngine = (function(){
     }));
   }
 
-  function schedule(){
-    const isMobile = window.matchMedia('(max-width: 640px)').matches;
-    const fps = isMobile ? 24 : 30;
+  function draw(dt){
+    if (!canvas || !ctx) return;
+    ctx.clearRect(0, 0, W, H);
+    if (!drops.length) return;
+    ctx.strokeStyle = 'rgba(175,210,250,.52)';
+    ctx.lineWidth = intensity > 0.7 ? 1.25 : 1;
+    ctx.lineCap = quality.round ? 'round' : 'butt';
+    ctx.beginPath();
+    for (const drop of drops) {
+      drop.y += drop.speed * dt;
+      drop.x -= drop.speed * 0.12 * dt;
+      if (drop.y > H + 10) {
+        drop.y = -drop.len;
+        drop.x = Math.random() * W;
+      }
+      ctx.moveTo(drop.x, drop.y);
+      ctx.lineTo(drop.x - drop.len * 0.12, drop.y + drop.len);
+    }
+    ctx.stroke();
+  }
+
+  function scheduleNextFrame(){
+    if (!active || intensity === 0 || !quality.enabled || frameTimer || rafId) return;
     frameTimer = window.setTimeout(() => {
-      if (active && !document.hidden) rafId = requestAnimationFrame(render);
-    }, 1000 / fps);
+      frameTimer = 0;
+      if (!active || intensity === 0 || !quality.enabled) return;
+      if (document.hidden) {
+        stop();
+        return;
+      }
+      rafId = requestAnimationFrame(render);
+    }, 1000 / quality.fps);
   }
 
   function render(ts){
     rafId = 0;
-    if (!canvas || !ctx || !active || document.hidden) return;
-    const dt = Math.min((ts - lastT) / 16.67, 3) || 1;
-    lastT = ts;
-    ctx.clearRect(0, 0, W, H);
-    if (drops.length > 0) {
-      ctx.strokeStyle = 'rgba(175,210,250,.52)';
-      ctx.lineWidth = intensity > 0.7 ? 1.3 : 1;
-      ctx.lineCap = 'round';
-      ctx.beginPath();
-      for (const drop of drops) {
-        drop.y += drop.speed * dt;
-        drop.x -= drop.speed * 0.12 * dt;
-        if (drop.y > H + 10) {
-          drop.y = -drop.len;
-          drop.x = Math.random() * W;
-        }
-        ctx.moveTo(drop.x, drop.y);
-        ctx.lineTo(drop.x - drop.len * 0.12, drop.y + drop.len);
-      }
-      ctx.stroke();
+    if (!active || intensity === 0 || document.hidden || mqReduce.matches || !quality.enabled) {
+      stop();
+      return;
     }
-    schedule();
+
+    const interval = 1000 / quality.fps;
+    const elapsed = lastDraw ? ts - lastDraw : interval;
+    lastDraw = ts;
+    const dt = Math.min(elapsed / 16.67, 5) || 1;
+    draw(dt);
+
+    sampleFrames += 1;
+    if (elapsed > interval * 1.75) lateFrames += 1;
+    if (sampleFrames >= 120) {
+      const shouldDowngrade = lateFrames > 12;
+      sampleFrames = 0;
+      lateFrames = 0;
+      if (shouldDowngrade) WeatherQuality.downgrade();
+    }
+
+    scheduleNextFrame();
   }
 
   function setWeather(state){
     intensity = state === 'storm' ? 1 : state === 'rain' ? 0.5 : 0;
     if (!canvas || !ctx) return;
-    if (intensity === 0) {
-      drops = [];
-      ctx.clearRect(0, 0, W, H);
+    if (intensity === 0 || !quality.enabled) {
+      stop();
       return;
     }
-    initDrops();
+    if (active) initDrops();
+    else drops = [];
   }
 
   function start(){
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || active) return;
+    if (!canvas || !ctx || mqReduce.matches || active || intensity === 0 || !quality.enabled) return;
     active = true;
-    lastT = 0;
+    lastDraw = 0;
+    sampleFrames = 0;
+    lateFrames = 0;
     resize();
-    rafId = requestAnimationFrame(render);
+    scheduleNextFrame();
   }
 
   function stop(){
+    const hadContent = active || drops.length > 0 || frameTimer || rafId;
     active = false;
-    if (rafId) cancelAnimationFrame(rafId);
-    if (frameTimer) clearTimeout(frameTimer);
-    rafId = 0;
-    frameTimer = 0;
-    if (ctx) ctx.clearRect(0, 0, W, H);
+    cancelScheduledFrame();
+    cancelResizeTimer();
+    lastDraw = 0;
+    sampleFrames = 0;
+    lateFrames = 0;
+    drops = [];
+    if (ctx && hadContent) ctx.clearRect(0, 0, W, H);
   }
 
-  window.addEventListener('resize', resize);
-  return { setWeather, start, stop, resize };
+  function onResize(){
+    // Mobile Safari fires resize when the URL bar changes height. Ignore height-only changes.
+    if (window.innerWidth === lastViewportWidth) return;
+    lastViewportWidth = window.innerWidth;
+    cancelResizeTimer();
+    if (!active || intensity === 0 || !quality.enabled || document.hidden) return;
+    resizeTimer = window.setTimeout(() => {
+      resizeTimer = 0;
+      if (!active || intensity === 0 || !quality.enabled || document.hidden) return;
+      resize();
+    }, 150);
+  }
+
+  window.addEventListener('resize', onResize, { passive:true });
+  return { setWeather, start, stop, resize, setTier };
+})();
+
+const WeatherQuality = (function(){
+  const mqReduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const mqSmall = window.matchMedia('(max-width: 640px), (pointer: coarse)');
+  const listeners = new Set();
+  let tier = base();
+
+  function base(){
+    if (mqReduce.matches) return 'static';
+    const connection = navigator.connection || {};
+    const cores = navigator.hardwareConcurrency || 4;
+    const memory = navigator.deviceMemory || 4; // Safari usually returns undefined.
+    if (connection.saveData || cores <= 2 || memory <= 2) return 'low';
+    if (mqSmall.matches) return 'medium';
+    return cores >= 8 ? 'high' : 'medium';
+  }
+
+  function apply(nextTier){
+    if (!nextTier || nextTier === tier) return;
+    tier = nextTier;
+    document.documentElement.dataset.quality = tier;
+    RainEngine.setTier(tier);
+    listeners.forEach(fn => fn(tier));
+  }
+
+  function downgrade(){
+    if (tier === 'high') apply('medium');
+    else if (tier === 'medium') apply('low');
+  }
+
+  function onChange(fn){
+    listeners.add(fn);
+    return () => listeners.delete(fn);
+  }
+
+  document.documentElement.dataset.quality = tier;
+  RainEngine.setTier(tier);
+
+  const onMediaChange = () => apply(base());
+  mqReduce.addEventListener?.('change', onMediaChange);
+  mqSmall.addEventListener?.('change', onMediaChange);
+
+  navigator.getBattery?.().then(battery => {
+    const check = () => {
+      if (!mqReduce.matches && battery.level < 0.2 && !battery.charging) apply('low');
+    };
+    battery.addEventListener('levelchange', check);
+    battery.addEventListener('chargingchange', check);
+    check();
+  }).catch(() => {});
+
+  return { get tier(){ return tier; }, base, apply, downgrade, onChange };
 })();
 
 (function(){
   const motionBtn = document.getElementById('motion-btn');
+  const mqReduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const motionAllowed = () => !mqReduce.matches && WeatherQuality.tier !== 'static';
   let motionEnabled = false;
+  let pageVisible = !document.hidden;
+  let appVisible = true;
+  const shouldAnimate = () => motionEnabled && pageVisible && appVisible && motionAllowed();
+  const shouldRunRain = () => shouldAnimate() && ['rain', 'storm'].includes(document.body.dataset.weather || '');
 
   function updateMotionButton(){
     if (!motionBtn) return;
+    const disabled = !motionAllowed();
+    motionBtn.disabled = disabled;
     motionBtn.textContent = motionEnabled ? 'Ⅱ' : '▶';
     motionBtn.setAttribute('aria-pressed', String(motionEnabled));
     motionBtn.setAttribute('aria-label', motionEnabled ? 'Stop weather animation' : 'Start weather animation');
   }
 
+  function syncRuntime(){
+    document.body.classList.toggle('wx-paused', !shouldAnimate());
+    if (shouldRunRain()) RainEngine.start();
+    else RainEngine.stop();
+    updateMotionButton();
+  }
+
   function startMotion(){
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (!motionAllowed()) {
+      motionEnabled = false;
+      updateMotionButton();
+      return;
+    }
     motionEnabled = true;
     document.body.classList.add('motion-on');
-    RainEngine.start();
-    updateMotionButton();
+    syncRuntime();
   }
 
   function stopMotion(){
     motionEnabled = false;
     document.body.classList.remove('motion-on');
-    RainEngine.stop();
-    updateMotionButton();
+    syncRuntime();
   }
 
   window.setWeatherVisual = function setWeatherVisual(state){
     document.body.dataset.weather = state;
     RainEngine.setWeather(state);
     if (window.updateTideWalkScore) window.updateTideWalkScore(state);
+    syncRuntime();
   };
   window.startMotion = startMotion;
   window.stopMotion = stopMotion;
 
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-      RainEngine.stop();
-    } else if (motionEnabled) {
-      RainEngine.start();
-    }
+    pageVisible = !document.hidden;
+    syncRuntime();
   });
+  window.addEventListener('pagehide', () => {
+    pageVisible = false;
+    syncRuntime();
+  });
+  window.addEventListener('pageshow', () => {
+    pageVisible = !document.hidden;
+    syncRuntime();
+  });
+
+  const app = document.querySelector('.app');
+  if ('IntersectionObserver' in window && app) {
+    const observer = new IntersectionObserver(([entry]) => {
+      appVisible = entry.isIntersecting;
+      syncRuntime();
+    }, { threshold: 0.01 });
+    observer.observe(app);
+  }
+
+  WeatherQuality.onChange((tier) => {
+    if (tier === 'static') {
+      motionEnabled = false;
+      document.body.classList.remove('motion-on');
+    }
+    syncRuntime();
+  });
+
   if (motionBtn) motionBtn.addEventListener('click', () => motionEnabled ? stopMotion() : startMotion());
   RainEngine.resize();
   RainEngine.setWeather(document.body.dataset.weather || 'storm');
